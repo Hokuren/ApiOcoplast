@@ -17,11 +17,51 @@ class ProductTreatmentPhasesController < ApplicationController
   def create
     @product_treatment_phase = ProductTreatmentPhase.new(product_treatment_phase_params)
 
-    if @product_treatment_phase.save
+    puts "Dentro del create"
+
+    if @product_treatment_phase.save  
+        
+      if !@product_treatment_phase.product_treatment_phase_id.nil? 
+
+        puts "Primer if"
+          
+        lotClean = ProductTreatmentPhase.where(id: @product_treatment_phase.product_treatment_phase_id, product_treatment_phase_id: nil).last.lots.where(cost: 0)
+      
+        puts "segundo if"  
+          if !lotClean.nil? 
+            
+            puts "Entre al if de lotClean"
+
+            lot = ProductTreatmentPhase.find(@product_treatment_phase.product_treatment_phase_id).lots
+
+            lot_cost = Lot.find_by(id: lot.ids).quantities.sum(:cost) 
+            lot_weight = Lot.find_by(id: lot.ids).quantities.sum(:weight) 
+
+            new_cost = lot_cost - @product_treatment_phase.cost
+            new_weight = lot_weight - @product_treatment_phase.weight
+
+            ProductTreatmentPhase.find_by(id: @product_treatment_phase.product_treatment_phase_id).update(cost: new_cost, weight: new_weight)
+            puts "Primer Update"
+            ProductTreatmentPhase.find_by(id: @product_treatment_phase.product_treatment_phase_id).lots.update(cost: new_cost, weight: new_weight)
+            puts "Segundo Update"
+            Lot.create(cost: @product_treatment_phase.cost, weight: @product_treatment_phase.weight, waste: 0.0, available: 0.0, product_treatment_phase_id:@product_treatment_phase.id)
+            puts "lote Creado"
+          end 
+      else
+        puts "Entre al else del segundo if"  
+
+        lot_previous = ProductTreatmentPhase.find(@product_treatment_phase.product_treatment_phase_id).lots
+        @product_treatment_phase.cost = lot_previous.cost
+        @product_treatment_phase.weight = lot_previous.weight
+        Lot.create(cost: @product_treatment_phase.cost, weight: @product_treatment_phase.weight, waste: 0.0, available: 0.0, product_treatment_phase_id:@product_treatment_phase.id)  
+            
+      end  
+
       render json: @product_treatment_phase, status: :created, location: @product_treatment_phase
     else
       render json: @product_treatment_phase.errors, status: :unprocessable_entity
-    end
+    end 
+
   end
 
   # PATCH/PUT /product_treatment_phases/1
@@ -46,6 +86,6 @@ class ProductTreatmentPhasesController < ApplicationController
 
     # Only allow a trusted parameter "white list" through.
     def product_treatment_phase_params
-      params.require(:product_treatment_phase).permit(:cost, :weight, :phase_id, :ProductTreatmentPhase_id)
+      params.require(:product_treatment_phase).permit(:cost, :weight, :phase_id, :product_treatment_phase_id)
     end
 end

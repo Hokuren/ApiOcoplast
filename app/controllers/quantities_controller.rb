@@ -28,7 +28,7 @@
   # POST /quantities
   def create
 
-    #begin 
+    begin 
 
       @quantity = Quantity.new(quantity_params)
       
@@ -45,30 +45,33 @@
       puts 'que viene el json lot'
       puts @lot.inspect
 
-      @producttreatmentphase.save! 
-      @lot.product_treatment_phase_id = @producttreatmentphase.id
-      
-      if  @lot.save ### 2
-        #render json: @lot, status: :created, location: @lot
-      else
-        #render json: @lot.errors, status: :unprocessable_entity
-      end
+      if Lot.last.nil?
+        ### 1
+        @producttreatmentphase.save!  
+        @lot.product_treatment_phase_id = @producttreatmentphase.id
+        
+        ### 2
+        if  @lot.save 
+          #render json: @lot, status: :created, location: @lot
+        else
+          #render json: @lot.errors, status: :unprocessable_entity
+        end
+        @quantity.lot_id = @lot.id
+      else 
+        @quantity.lot_id = Lot.last.id
+      end 
+        
+        
+        if @quantity.save 
+          render json: @quantity, status: :created, location: @quantity
+        else
+          render json: @quantity.errors, status: :unprocessable_entity
+        end
 
-      @quantity.lot_id = @lot.id
-
-      puts 'quantity created'
-      puts @quantity
-      if @quantity.save ### 3
-        render json: @quantity, status: :created, location: @quantity
-      else
-        render json: @quantity.errors, status: :unprocessable_entity
-      end
-
-    puts 'Is created'
-   # rescue  
-
-   #   puts 'Is not created'  
-   # end  
+      puts 'Is created'
+    rescue  
+      puts 'Is not created'  
+    end  
 
     # termina oscar
   end
