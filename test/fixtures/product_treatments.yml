@@ -1,0 +1,17 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  cost: 
+  weight: 
+  waste: 
+  Treatment: one
+  ProductTreatmentPhase: one
+  ProductTreatment: one
+
+two:
+  cost: 
+  weight: 
+  waste: 
+  Treatment: two
+  ProductTreatmentPhase: two
+  ProductTreatment: two
