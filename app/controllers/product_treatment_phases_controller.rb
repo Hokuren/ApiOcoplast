@@ -15,30 +15,47 @@ class ProductTreatmentPhasesController < ApplicationController
 
   # POST /product_treatment_phases
   def create
+
     @product_treatment_phase = ProductTreatmentPhase.new(product_treatment_phase_params)
 
     puts "Dentro del create"
 
     if @product_treatment_phase.save  
-        
+      
+      #validamos que sea hijo de una face 
       if !@product_treatment_phase.product_treatment_phase_id.nil? 
 
-        puts "Primer if"
-          
-        lotClean = ProductTreatmentPhase.where(id: @product_treatment_phase.product_treatment_phase_id, product_treatment_phase_id: nil).last.lots.where(cost: 0)
-      
-        puts "segundo if"  
-          if !lotClean.nil? 
-            
+          puts "Primer if"
+          begin 
+            lotClean = ProductTreatmentPhase.where(id: @product_treatment_phase.product_treatment_phase_id, product_treatment_phase_id: nil).last.lots.where(cost: 0)
+          rescue
+            lotClean = 0 
+          end
+
+          #validamos que el lote de la face anterior este seteado en 0
+          if lotClean.nil? 
             puts "Entre al if de lotClean"
-
+            lot_previous = ProductTreatmentPhase.find_by(id: @product_treatment_phase.product_treatment_phase_id).lots
+            @product_treatment_phase.cost = lot_previous.last.cost
+            @product_treatment_phase.weight = lot_previous.last.weight
+            Lot.create(cost: @product_treatment_phase.cost, weight: @product_treatment_phase.weight, waste: 0.0, available: 0.0, product_treatment_phase_id:@product_treatment_phase.id)        
+            #falta restar el face anterior 
+            #falta crear el lote 
+          else
+            puts "Entro al ElSE de lotClean"
             lot = ProductTreatmentPhase.find(@product_treatment_phase.product_treatment_phase_id).lots
-
-            lot_cost = Lot.find_by(id: lot.ids).quantities.sum(:cost) 
-            lot_weight = Lot.find_by(id: lot.ids).quantities.sum(:weight) 
-
-            new_cost = lot_cost - @product_treatment_phase.cost
-            new_weight = lot_weight - @product_treatment_phase.weight
+            
+            if !@product_treatment_phase.product_treatment_phase_id.nil? and @product_treatment_phase.phase_id = 2
+              lot_cost = Lot.find_by(id: lot.ids).quantities.sum(:cost) 
+              lot_weight = Lot.find_by(id: lot.ids).quantities.sum(:weight) 
+              cost = @product_treatment_phase.cost
+              weight = @product_treatment_phase.weight
+              new_cost = lot_cost - cost
+              new_weight = lot_weight - weight
+            else 
+              new_cost = @product_treatment_phase.cost
+              new_weight = @product_treatment_phase.weight
+            end 
 
             ProductTreatmentPhase.find_by(id: @product_treatment_phase.product_treatment_phase_id).update(cost: new_cost, weight: new_weight)
             puts "Primer Update"
@@ -46,15 +63,7 @@ class ProductTreatmentPhasesController < ApplicationController
             puts "Segundo Update"
             Lot.create(cost: @product_treatment_phase.cost, weight: @product_treatment_phase.weight, waste: 0.0, available: 0.0, product_treatment_phase_id:@product_treatment_phase.id)
             puts "lote Creado"
-          end 
-      else
-        puts "Entre al else del segundo if"  
-
-        lot_previous = ProductTreatmentPhase.find(@product_treatment_phase.product_treatment_phase_id).lots
-        @product_treatment_phase.cost = lot_previous.cost
-        @product_treatment_phase.weight = lot_previous.weight
-        Lot.create(cost: @product_treatment_phase.cost, weight: @product_treatment_phase.weight, waste: 0.0, available: 0.0, product_treatment_phase_id:@product_treatment_phase.id)  
-            
+          end       
       end  
 
       render json: @product_treatment_phase, status: :created, location: @product_treatment_phase
