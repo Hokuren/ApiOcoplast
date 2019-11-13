@@ -17,11 +17,20 @@ class ProductTreatmentsController < ApplicationController
   def create
     @product_treatment = ProductTreatment.new(product_treatment_params)
 
-    if @product_treatment.save
-      render json: @product_treatment, status: :created, location: @product_treatment
-    else
-      render json: @product_treatment.errors, status: :unprocessable_entity
-    end
+    # Si la cantidad de la face es mayor o igual al los tratamientos 
+    lot_phase = ProductTreatmentPhase.find(@product_treatment.product_treatment_phase_id).lots.last
+    
+    if lot_phase.weight >= @product_treatment.weight
+
+      if @product_treatment.save
+        render json: @product_treatment, status: :created, location: @product_treatment
+      else
+        render json: @product_treatment.errors, status: :unprocessable_entity
+      end
+    else 
+        puts "la cantidad de tratamiento no puede ser mayor al lote de las face ( lote : #{ lot_phase.weight }  <->  Phase : #{ @product_treatment.weight } ) "
+    end  
+
   end
 
   # PATCH/PUT /product_treatments/1
@@ -46,6 +55,6 @@ class ProductTreatmentsController < ApplicationController
 
     # Only allow a trusted parameter "white list" through.
     def product_treatment_params
-      params.require(:product_treatment).permit(:cost, :weight, :waste, :Treatment_id, :ProductTreatmentPhase_id, :ProductTreatment_id)
+      params.require(:product_treatment).permit(:cost, :weight, :waste, :treatment_id, :product_treatment_phase_id, :product_treatment_id)
     end
 end

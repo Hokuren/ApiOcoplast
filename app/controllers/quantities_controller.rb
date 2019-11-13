@@ -38,35 +38,26 @@
 
       @lot = Lot.new(cost: 0, weight: 0, waste: 0, available: 0, product_treatment_phase_id: @producttreatmentphase.id)
       
-      puts 'que viene el json producttreatmentphase'
-      puts @producttreatmentphase.inspect
-      puts 'que viene el json quantity'
-      puts @quantity.inspect
-      puts 'que viene el json lot'
-      puts @lot.inspect
-
-      if Lot.last.nil?
+      if Lot.where(cost: 0).joins(:quantities).where(quantities: { product_id: 1 }).last.nil? 
+        #Lot.last.nil?
         ### 1
         @producttreatmentphase.save!  
         @lot.product_treatment_phase_id = @producttreatmentphase.id
-        
         ### 2
-        if  @lot.save 
-          #render json: @lot, status: :created, location: @lot
-        else
-          #render json: @lot.errors, status: :unprocessable_entity
-        end
+        @lot.save 
+
         @quantity.lot_id = @lot.id
       else 
         @quantity.lot_id = Lot.last.id
       end 
-        
-        
-        if @quantity.save 
-          render json: @quantity, status: :created, location: @quantity
-        else
-          render json: @quantity.errors, status: :unprocessable_entity
-        end
+       
+      puts "--->>> inspeccionando la cantidad <<<---"
+      puts @quantity.inspect 
+      if @quantity.save 
+        render json: @quantity, status: :created, location: @quantity
+      else
+        render json: @quantity.errors, status: :unprocessable_entity
+      end
 
       puts 'Is created'
     rescue  

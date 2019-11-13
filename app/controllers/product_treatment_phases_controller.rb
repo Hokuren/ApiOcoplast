@@ -18,6 +18,7 @@ class ProductTreatmentPhasesController < ApplicationController
 
     @product_treatment_phase = ProductTreatmentPhase.new(product_treatment_phase_params)
 
+    @product_treatment_phase.cost = 0 
     puts "Dentro del create"
 
     if @product_treatment_phase.save  
@@ -27,7 +28,7 @@ class ProductTreatmentPhasesController < ApplicationController
 
           puts "Primer if"
           begin 
-            lotClean = ProductTreatmentPhase.where(id: @product_treatment_phase.product_treatment_phase_id, product_treatment_phase_id: nil).last.lots.where(cost: 0)
+            lotClean = ProductTreatmentPhase.where(id: @product_treatment_phase.product_treatment_phase_id, product_treatment_phase_id: nil).last.lots.where(weight: 0)
           rescue
             lotClean = 0 
           end
@@ -44,25 +45,56 @@ class ProductTreatmentPhasesController < ApplicationController
           else
             puts "Entro al ElSE de lotClean"
             lot = ProductTreatmentPhase.find(@product_treatment_phase.product_treatment_phase_id).lots
-            
-            if !@product_treatment_phase.product_treatment_phase_id.nil? and @product_treatment_phase.phase_id = 2
+            cost_treatments = ProductTreatmentPhase.find(@product_treatment_phase.product_treatment_phase_id).product_treatments.sum(:cost) and lot.last.cost == 0
+
+            if !@product_treatment_phase.product_treatment_phase_id.nil? and @product_treatment_phase.phase_id == 2
+    
               lot_cost = Lot.find_by(id: lot.ids).quantities.sum(:cost) 
               lot_weight = Lot.find_by(id: lot.ids).quantities.sum(:weight) 
-              cost = @product_treatment_phase.cost
+              #cost = @product_treatment_phase.cost
               weight = @product_treatment_phase.weight
-              new_cost = lot_cost - cost
+              previous_cost_kilo_phase = ( lot_cost / lot_weight )
+              new_cost = previous_cost_kilo_phase
               new_weight = lot_weight - weight
+              puts "-->>> Entro al if de costos <<<---"
+              puts "previous_cost_kilo_phase: #{ previous_cost_kilo_phase } = ( lot_cost #{ lot_cost } / lot_weight #{ lot_weight }) "
+              puts "( previous_cost_kilo_phase: #{ previous_cost_kilo_phase } + cost_treatments #{ cost_treatments } ) / #{ weight }"
+              puts "new_weight: #{ new_weight } lot_weight: #{ lot_weight } - weight: #{ weight }"
+
+              #acutaliza el cost y weight la fase 0 
+              ProductTreatmentPhase.find_by(id: @product_treatment_phase.product_treatment_phase_id).update(cost: new_cost, weight: new_weight)
+              #actualizo el cost la fase actual(fase 1)
+              ProductTreatmentPhase.find_by(id: @product_treatment_phase.id).update(cost: new_cost)
+              #actualizo el cost y weight del lote de la face anterior
+              ProductTreatmentPhase.find_by(id: @product_treatment_phase.product_treatment_phase_id).lots.update(cost: new_cost, weight: new_weight)
+              #creo el lote de la fase 1
+              Lot.create(cost: new_cost, weight: @product_treatment_phase.weight, waste: 0.0, available: 0.0, product_treatment_phase_id:@product_treatment_phase.id)
+            
             else 
-              new_cost = @product_treatment_phase.cost
-              new_weight = @product_treatment_phase.weight
+              puts "--->>> No soy primera face <<<---"
+              cost_phase_previous = lot.last.cost
+              weight_phase_previous = lot.last.weight
+              
+              #costo de la face anterior con los tratamientos 
+              cost_phase_previous_with_treatments = ((cost_phase_previous * @product_treatment_phase.weight) + cost_treatments) /  @product_treatment_phase.weight
+              weight_phase_previous = weight_phase_previous - @product_treatment_phase.weight
+
+              new_cost = cost_phase_previous_with_treatments
+              new_weight = weight_phase_previous
+
+              #acutaliza el cost y weight la fase anterior 
+              ProductTreatmentPhase.find_by(id: @product_treatment_phase.product_treatment_phase_id).update(cost: new_cost, weight: new_weight)
+              #actualizo el cost la fase actual
+              ProductTreatmentPhase.find_by(id: @product_treatment_phase.id).update(cost: new_cost)
+              #actualizo el cost y weight del lote de la face anterior
+              ProductTreatmentPhase.find_by(id: @product_treatment_phase.product_treatment_phase_id).lots.update(cost: new_cost, weight: new_weight)
+              #creo el lote de la fase actual
+              Lot.create(cost: new_cost, weight: @product_treatment_phase.weight, waste: 0.0, available: 0.0, product_treatment_phase_id:@product_treatment_phase.id)
+              #( ( previous_cost_kilo_phase + cost_treatments) ) / weight
+              #costos de los tratamientos de la fase anterior   
+              
             end 
 
-            ProductTreatmentPhase.find_by(id: @product_treatment_phase.product_treatment_phase_id).update(cost: new_cost, weight: new_weight)
-            puts "Primer Update"
-            ProductTreatmentPhase.find_by(id: @product_treatment_phase.product_treatment_phase_id).lots.update(cost: new_cost, weight: new_weight)
-            puts "Segundo Update"
-            Lot.create(cost: @product_treatment_phase.cost, weight: @product_treatment_phase.weight, waste: 0.0, available: 0.0, product_treatment_phase_id:@product_treatment_phase.id)
-            puts "lote Creado"
           end       
       end  
 
@@ -95,6 +127,6 @@ class ProductTreatmentPhasesController < ApplicationController
 
     # Only allow a trusted parameter "white list" through.
     def product_treatment_phase_params
-      params.require(:product_treatment_phase).permit(:cost, :weight, :phase_id, :product_treatment_phase_id)
+      params.require(:product_treatment_phase).permit(:cost ,:weight, :phase_id, :product_treatment_phase_id)
     end
 end
