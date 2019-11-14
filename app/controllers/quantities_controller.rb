@@ -29,16 +29,18 @@
   def create
 
     begin 
-
+      puts "--->>>inicio try<<<---"      
       @quantity = Quantity.new(quantity_params)
       
       @producttreatmentphase = ProductTreatmentPhase.new(cost: 0, weight: 0)
       
       @producttreatmentphase.phase_id = 1
-
+     
       @lot = Lot.new(cost: 0, weight: 0, waste: 0, available: 0, product_treatment_phase_id: @producttreatmentphase.id)
-      
-      if Lot.where(cost: 0).joins(:quantities).where(quantities: { product_id: 1 }).last.nil? 
+        
+      if Lot.where(cost: 0).joins(:quantities).where(quantities: { product_id: @quantity.product_id }).size  == 0
+
+        puts "--->>> inicio if <<<---"
         #Lot.last.nil?
         ### 1
         @producttreatmentphase.save!  
@@ -48,6 +50,7 @@
 
         @quantity.lot_id = @lot.id
       else 
+        puts "--->>> inicio else <<<---"
         @quantity.lot_id = Lot.last.id
       end 
        

@@ -27,7 +27,9 @@ class ProductTreatmentsController < ApplicationController
       else
         render json: @product_treatment.errors, status: :unprocessable_entity
       end
+
     else 
+        render json: { message: "la cantidad de tratamiento no puede ser mayor al lote de las face"}
         puts "la cantidad de tratamiento no puede ser mayor al lote de las face ( lote : #{ lot_phase.weight }  <->  Phase : #{ @product_treatment.weight } ) "
     end  
 
