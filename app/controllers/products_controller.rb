@@ -38,6 +38,24 @@ class ProductsController < ApplicationController
     @product.destroy
   end
 
+  def quantity
+    # puts "imprimiendo parametros"
+    # puts quantity_product_params.inspect
+
+    #binding.pry
+    #if quantity_product_params.initial_date.nil? and quantity_product_params.last_date.nil?
+    #  binding.pry
+    #  cost =  Product.find(quantity_product_params.id).quantities.sum(:cost)
+    #  weight =  Product.find(quantity_product_params.id).quantities.sum(:weight)
+    # binding.pry
+    #else
+    #  binding.pry
+    #  cost = Product.find(quantity_product_params.id).quantities.sum(:cost).where(created_at: (quantity_product_params.initial_date)..(quantity_product_params.last_date) )
+    #  weight = Product.find(quantity_product_params.id).quantities.sum(:cost).where(created_at: (quantity_product_params.initial_date)..(quantity_product_params.last_date) ) 
+    #  binding.pry
+    #end
+  end
+
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_product
@@ -47,5 +65,9 @@ class ProductsController < ApplicationController
     # Only allow a trusted parameter "white list" through.
     def product_params
       params.require(:product).permit(:name, :cost, :weight)
+    end
+
+    def quantity_product_params
+      params.require(:product).permit(:id, :initial_date, :last_date)
     end
 end

@@ -28,45 +28,50 @@
   # POST /quantities
   def create
 
-    begin 
-      puts "--->>>inicio try<<<---"      
-      @quantity = Quantity.new(quantity_params)
-      
-      @producttreatmentphase = ProductTreatmentPhase.new(cost: 0, weight: 0)
-      
-      @producttreatmentphase.phase_id = 1
-     
-      @lot = Lot.new(cost: 0, weight: 0, waste: 0, available: 0, product_treatment_phase_id: @producttreatmentphase.id)
+    
+
+      begin 
+
+        Quantity.transaction do
+          puts "--->>>inicio try<<<---" 
+          @quantity = Quantity.new(quantity_params)
+          
+          @producttreatmentphase = ProductTreatmentPhase.new(cost: 0, weight: 0)
+          
+          @producttreatmentphase.phase_id = 1
         
-      if Lot.where(cost: 0).joins(:quantities).where(quantities: { product_id: @quantity.product_id }).size  == 0
+          @lot = Lot.new(cost: 0, weight: 0, waste: 0, available: 0, product_treatment_phase_id: @producttreatmentphase.id)
+            
+          if Lot.where(cost: 0).joins(:quantities).where(quantities: { product_id: @quantity.product_id }).size  == 0
 
-        puts "--->>> inicio if <<<---"
-        #Lot.last.nil?
-        ### 1
-        @producttreatmentphase.save!  
-        @lot.product_treatment_phase_id = @producttreatmentphase.id
-        ### 2
-        @lot.save 
+            puts "--->>> inicio if <<<---"
+            #Lot.last.nil?
+            ### 1
+            @producttreatmentphase.save!  
+            @lot.product_treatment_phase_id = @producttreatmentphase.id
+            ### 2
+            @lot.save 
 
-        @quantity.lot_id = @lot.id
-      else 
-        puts "--->>> inicio else <<<---"
-        @quantity.lot_id = Lot.last.id
-      end 
-       
-      puts "--->>> inspeccionando la cantidad <<<---"
-      puts @quantity.inspect 
-      if @quantity.save 
-        render json: @quantity, status: :created, location: @quantity
-      else
-        render json: @quantity.errors, status: :unprocessable_entity
-      end
+            @quantity.lot_id = @lot.id
+          else 
+            puts "--->>> inicio else <<<---"
+            @quantity.lot_id = Lot.last.id
+          end 
+          
+          puts "--->>> inspeccionando la cantidad <<<---"
+          puts @quantity.inspect 
+          if @quantity.save!
+            render json: @quantity, status: :created, location: @quantity
+          else
+            render json: @quantity.errors, status: :unprocessable_entity
+          end
+        end # --->>> Colsed Transaction 
+        puts 'Is created'
+      rescue  
+        puts 'Is not created'  
+      end  
 
-      puts 'Is created'
-    rescue  
-      puts 'Is not created'  
-    end  
-
+    
     # termina oscar
   end
 
