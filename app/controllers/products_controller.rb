@@ -39,22 +39,23 @@ class ProductsController < ApplicationController
   end
 
   def quantity
-    # puts "imprimiendo parametros"
-    # puts quantity_product_params.inspect
-
-    #binding.pry
-    #if quantity_product_params.initial_date.nil? and quantity_product_params.last_date.nil?
-    #  binding.pry
-    #  cost =  Product.find(quantity_product_params.id).quantities.sum(:cost)
-    #  weight =  Product.find(quantity_product_params.id).quantities.sum(:weight)
-    # binding.pry
-    #else
-    #  binding.pry
-    #  cost = Product.find(quantity_product_params.id).quantities.sum(:cost).where(created_at: (quantity_product_params.initial_date)..(quantity_product_params.last_date) )
-    #  weight = Product.find(quantity_product_params.id).quantities.sum(:cost).where(created_at: (quantity_product_params.initial_date)..(quantity_product_params.last_date) ) 
-    #  binding.pry
-    #end
-  end
+    quantity = quantity_product_params
+ 
+    if quantity[:initial_date].nil? and quantity[:last_date].nil?   
+    	Quantity.includes(:product).where("product_id = ?",quantity[:id]).group_by{ |x| x.product}.map{ |key,resource| [key.name,resource.map{ |q| q.cost}.reduce(:+).to_i,resource.map{ |q| q.weight}.reduce(:+).to_i]}
+	else
+        if Date.parse(quantity[:initial_date]) and Date.parse(quantity[:last_date])
+			initial_date = Date.parse(quantity[:initial_date])
+			last_date = Date.parse(quantity[:last_date])
+			#cost = Product.find_by(id: quantity[:id]).quantities.where("created_at BETWEEN ? AND ?",initial_date,last_date).sum(:cost)
+			#weight = Product.find_by(id: quantity[:id]).quantities.where("created_at BETWEEN ? AND ?",initial_date,last_date).sum(:weight)
+			quantity = Quantity.includes(:product).where("product_id = ?",quantity[:id]).group_by{ |x| x.product }.map{ |key,resource| [key.name,resource.map{ |q| q.cost}.reduce(:+).to_i,resource.map{ |q| q.weight}.reduce(:+).to_i]}
+			render json: quantity.inspect, status: :created, location: quantity
+        else
+          	render json: { message: "las fechas no son validas" }
+        end 
+    end
+end
 
   private
     # Use callbacks to share common setup or constraints between actions.
@@ -68,6 +69,9 @@ class ProductsController < ApplicationController
     end
 
     def quantity_product_params
-      params.require(:product).permit(:id, :initial_date, :last_date)
+      { id:params[:id], initial_date:params[:initial_date], last_date:params[:last_date] }
     end
 end
+
+#ojo consulta
+Quantity.includes(:product).where(product_id:[4]).group_by{|x| x.product}.map{|key,resource| [key.name,resource.map{|q| q.cost}.reduce(:+).to_i,resource.map{|q| q.weight}.reduce(:+).to_i]}
