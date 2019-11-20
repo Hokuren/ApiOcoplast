@@ -17,10 +17,8 @@ ActiveRecord::Schema.define(version: 2019_11_11_072729) do
     t.decimal "weight"
     t.decimal "waste"
     t.decimal "available"
-    t.integer "product_treatment_phase_id", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.index ["product_treatment_phase_id"], name: "index_lots_on_product_treatment_phase_id"
   end
 
   create_table "phases", force: :cascade do |t|
@@ -34,8 +32,10 @@ ActiveRecord::Schema.define(version: 2019_11_11_072729) do
     t.decimal "weight"
     t.integer "phase_id", null: false
     t.integer "product_treatment_phase_id"
+    t.integer "lot_id"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.index ["lot_id"], name: "index_product_treatment_phases_on_lot_id"
     t.index ["phase_id"], name: "index_product_treatment_phases_on_phase_id"
     t.index ["product_treatment_phase_id"], name: "index_product_treatment_phases_on_product_treatment_phase_id"
   end
@@ -79,7 +79,7 @@ ActiveRecord::Schema.define(version: 2019_11_11_072729) do
     t.datetime "updated_at", precision: 6, null: false
   end
 
-  add_foreign_key "lots", "product_treatment_phases"
+  add_foreign_key "product_treatment_phases", "lots"
   add_foreign_key "product_treatment_phases", "phases"
   add_foreign_key "product_treatment_phases", "product_treatment_phases"
   add_foreign_key "product_treatments", "product_treatment_phases"

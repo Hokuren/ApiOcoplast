@@ -1,4 +1,4 @@
 class Lot < ApplicationRecord
-  belongs_to :product_treatment_phase
+  has_many :product_treatment_phases
   has_many :quantities
 end

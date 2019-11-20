@@ -5,7 +5,8 @@
         t.numeric :weight
         t.references :phase, null: false, foreign_key: true
         t.references :product_treatment_phase, null: true, foreign_key: true
-
+        t.references :lot,  null: true,foreign_key: true
+         
         t.timestamps
       end
     end

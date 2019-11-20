@@ -5,8 +5,7 @@ class CreateLots < ActiveRecord::Migration[6.0]
       t.numeric :weight
       t.numeric :waste
       t.numeric :available
-      t.references :product_treatment_phase, null: false, foreign_key: true
-
+    
       t.timestamps
     end
   end

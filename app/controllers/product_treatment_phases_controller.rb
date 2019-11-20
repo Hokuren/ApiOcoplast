@@ -51,7 +51,8 @@ class ProductTreatmentPhasesController < ApplicationController
             puts "--->>>Primer if<<<---"
 
             begin
-                lotClean = ProductTreatmentPhase.where(id: product_treatment_phase_new.product_treatment_phase_id, product_treatment_phase_id: nil).last.lots.where(weight: 0)
+                #lotClean = ProductTreatmentPhase.where(id: product_treatment_phase_new.product_treatment_phase_id, product_treatment_phase_id: nil).last.lots.where(weight: 0)
+                lotClean = Lot.where(weight: 0).last.product_treatment_phases.where(id: product_treatment_phase_new.product_treatment_phase_id, product_treatment_phase_id: nil)
             rescue
                 lotClean = 0 
             end
@@ -65,14 +66,13 @@ class ProductTreatmentPhasesController < ApplicationController
                 Lot.create(cost: product_treatment_phase_new.cost, weight: product_treatment_phase_new.weight, waste: 0.0, available: 0.0, product_treatment_phase_id: product_treatment_phase_new.id)        
             else
                 puts "--->>> Entro al ElSE de lotClean <<<---"
-                lot = ProductTreatmentPhase.find(product_treatment_phase_new.product_treatment_phase_id).lots
-                if !product_treatment_phase_new.product_treatment_phase_id.nil? and product_treatment_phase_new.phase_id == 2 and lot.last.cost == 0
-                
-                    lot_cost = Lot.find_by(id: lot.ids).quantities.sum(:cost) 
-                    lot_weight = Lot.find_by(id: lot.ids).quantities.sum(:weight) 
-                
+                #lot = ProductTreatmentPhase.find(product_treatment_phase_new.product_treatment_phase_id).lots
+                lot = Lot.find_by(id: product_treatment_phase_new.product_treatment_phase_id)
+                if !product_treatment_phase_new.product_treatment_phase_id.nil? and product_treatment_phase_new.phase_id == 2 and lot.cost == 0
+                    lot_cost = Lot.find_by(id: lot.id).quantities.sum(:cost) 
+                    lot_weight = Lot.find_by(id: lot.id).quantities.sum(:weight) 
                     if product_treatment_phase_new.weight <= lot_weight #si el peso de la nueva es menor o igual a la del inventario 
-                        
+                        puts "--->>>Entro al if de validacion del peso actual es menor o igual al de la fase anterior<<<---"
                         previous_cost_kilo_phase = ( lot_cost / lot_weight )
                         previous_weight = lot_weight - product_treatment_phase_new.weight
                         
@@ -83,182 +83,62 @@ class ProductTreatmentPhasesController < ApplicationController
 
                         #acutaliza el cost y weight la fase 0 y el lote 0
                         ProductTreatmentPhase.find_by(id: product_treatment_phase_new.product_treatment_phase_id).update(cost: previous_cost_kilo_phase, weight: previous_weight)
-                        ProductTreatmentPhase.find_by(id: product_treatment_phase_new.product_treatment_phase_id).lots.update(cost: previous_cost_kilo_phase, weight: previous_weight)
+                        ProductTreatmentPhase.find_by(id: product_treatment_phase_new.product_treatment_phase_id).lot.update(cost: previous_cost_kilo_phase, weight: previous_weight)
+                        lot_new = Lot.create(cost: new_cost, weight: product_treatment_phase_new.weight, waste: 0.0, available: 0.0)
+                        product_treatment_phase_new.lot_id = lot_new.id 
                         
                         if product_treatment_phase_new.save 
-
-                            Lot.create(cost: new_cost, weight: product_treatment_phase_new.weight, waste: 0.0, available: 0.0, product_treatment_phase_id:product_treatment_phase_new.id)
-                            render json: product_treatment_phase_new, status: :created, location: product_treatment_phase_new
-
+    
+                            render json: product_treatment_phase_new, status: :created, location: product_treatment_phase_new  
                         else
-
                             render json: product_treatment_phase_new.errors, status: :unprocessable_entity
-
                         end 
-                    
+
                     else  
                         render json: { message: "El peso ingresado es mayor al del inventario" }
                     end
 
                 else 
                     puts "--->>> No soy primera face <<<---"
-                    cost_phase_previous = lot.last.cost
-                    weight_phase_previous = lot.last.weight
-            
+                    cost_phase_previous = lot.cost
+                    weight_phase_previous = lot.weight
+                    
                     if product_treatment_phase_new.weight <= weight_phase_previous
-        
                         #costo de la face anterior con los tratamientos 
                         cost_phase_previous_with_treatments = ((( cost_phase_previous * product_treatment_phase_new.weight) + cost_treatments) / product_treatment_phase_new.weight )
                         weight_phase_previous = weight_phase_previous - product_treatment_phase_new.weight
-                        
+                
                         new_cost = cost_phase_previous_with_treatments
                         new_weight = weight_phase_previous
                         product_treatment_phase_new.cost = new_cost
-
+            
                         #acutaliza el weight la fase anterior y el lote 
                         ProductTreatmentPhase.find_by(id: product_treatment_phase_new.product_treatment_phase_id).update(weight: weight_phase_previous)
-                        ProductTreatmentPhase.find_by(id: product_treatment_phase_new.product_treatment_phase_id).lots.update(weight: weight_phase_previous)
-                        
-                        if product_treatment_phase_new.save 
+                        ProductTreatmentPhase.find_by(id: product_treatment_phase_new.product_treatment_phase_id).lot.update(weight: weight_phase_previous)
 
-                            Lot.create(cost: new_cost, weight: product_treatment_phase_new.weight, waste: 0.0, available: 0.0, product_treatment_phase_id:product_treatment_phase_new.id)
-                            render json: product_treatment_phase_new, status: :created, location: product_treatment_phase_new
-
+                        #si mi phase anterior tiene un lote en mi misma face actual
+                        lot_phase_previous = ProductTreatmentPhase.find_by(id: product_treatment_phase_new.product_treatment_phase_id).product_treatment_phases.where("phase_id = ? and lot_id is not null",product_treatment_phase_new.phase_id).last
+                        if lot_phase_previous.nil? 
+                            puts "--->>>hay una lote posterior de las phase anteior<<<---"
+                            lot_new = Lot.create(cost: new_cost, weight: product_treatment_phase_new.weight, waste: 0.0, available: 0.0)
+                            product_treatment_phase_new.lot_id = lot_new.id 
                         else
-
-                            render json: product_treatment_phase_new.errors, status: :unprocessable_entity
-
-                        end   
-            
+                            puts "--->>>NO hay una lote posterior de las phase anteior<<<---" 
+                            product_treatment_phase_new.lot_id = lot_phase_previous.lot_id
+                        end 
                     else  
-
                         render json: { message: "El peso ingresado es mayor al del inventario" }
-
                     end
                 end 
             end
         end
+        if product_treatment_phase_new.save 
+            render json: product_treatment_phase_new, status: :created, location: product_treatment_phase_new
+        else
+            render json: product_treatment_phase_new.errors, status: :unprocessable_entity
+        end     
     end # --->>> closed transaction 
 end #--- >>> Closed method
-
-  
-    
-  #def metodoAnterior
-
-  #  @product_treatment_phase.cost = 0 
-  #   puts "Dentro del create"
-
-  #   if @product_treatment_phase.save  
-      
-  #     #validamos que sea hijo de una face 
-  #     if !@product_treatment_phase.product_treatment_phase_id.nil? 
-
-  #         puts "Primer if"
-  #         begin 
-  #           lotClean = ProductTreatmentPhase.where(id: @product_treatment_phase.product_treatment_phase_id, product_treatment_phase_id: nil).last.lots.where(weight: 0)
-  #         rescue
-  #           lotClean = 0 
-  #         end
-
-  #         #validamos que el lote de la face anterior este seteado en 0
-  #         if lotClean.nil? 
-
-  #           puts "Entre al if de lotClean"
-  #           lot_previous = ProductTreatmentPhase.find_by(id: @product_treatment_phase.product_treatment_phase_id).lots
-  #           @product_treatment_phase.cost = lot_previous.last.cost
-  #           @product_treatment_phase.weight = lot_previous.last.weight
-  #           Lot.create(cost: @product_treatment_phase.cost, weight: @product_treatment_phase.weight, waste: 0.0, available: 0.0, product_treatment_phase_id:@product_treatment_phase.id)        
-  #  
-  #         else
-  #          
-  #           puts "Entro al ElSE de lotClean"
-  #           lot = ProductTreatmentPhase.find(@product_treatment_phase.product_treatment_phase_id).lots
-  #           cost_treatments = ProductTreatmentPhase.find(@product_treatment_phase.product_treatment_phase_id).product_treatments.sum(:cost) ##and lot.last.cost == 0
-  #
-  #           if !@product_treatment_phase.product_treatment_phase_id.nil? and @product_treatment_phase.phase_id == 2 and lot.last.cost == 0
-  #  
-  #            lot_cost = Lot.find_by(id: lot.ids).quantities.sum(:cost) 
-  #             lot_weight = Lot.find_by(id: lot.ids).quantities.sum(:weight) 
-  #
-  #             if @product_treatment_phase.weight <= lot_weight
-  #              #cost = @product_treatment_phase.cost
-  #               weight = @product_treatment_phase.weight
-  #               previous_cost_kilo_phase = ( lot_cost / lot_weight )
-  #               new_cost = previous_cost_kilo_phase
-  #               new_weight = lot_weight - weight
-  #               puts "-->>> Entro al if de costos <<<---"
-  #               puts "previous_cost_kilo_phase: #{ previous_cost_kilo_phase } = ( lot_cost #{ lot_cost } / lot_weight #{ lot_weight }) "
-  #               puts "( previous_cost_kilo_phase: #{ previous_cost_kilo_phase } + cost_treatments #{ cost_treatments } ) / #{ weight }"
-  #               puts "new_weight: #{ new_weight } lot_weight: #{ lot_weight } - weight: #{ weight }"
-  #
-  #               #acutaliza el cost y weight la fase 0 
-  #               ProductTreatmentPhase.find_by(id: @product_treatment_phase.product_treatment_phase_id).update(cost: new_cost, weight: new_weight)
-  #               #actualizo el cost la fase actual(fase 1)
-  #               @product_treatment_phase.cost= new_cost
-  #               #actualizo el cost y weight del lote de la face anterior
-  #               ProductTreatmentPhase.find_by(id: @product_treatment_phase.product_treatment_phase_id).lots.update(cost: new_cost, weight: new_weight)
-  #             
-  #               if @product_treatment_phase.save 
-  #          
-  #                 Lot.create(cost: new_cost, weight: @product_treatment_phase.weight, waste: 0.0, available: 0.0, product_treatment_phase_id:@product_treatment_phase.id)
-  #                 render json: @product_treatment_phase, status: :created, location: @product_treatment_phase
-  #
-  #               else
-  # 
-  #                 render json: @product_treatment_phase.errors, status: :unprocessable_entity
-  #
-  #               end 
-  #            
-  #             else  
-  #               render json: { message: "El peso ingresado es mayor al del inventario" }
-  #             end
-  #
-  #          else 
-  #
-  #             puts "--->>> No soy primera face <<<---"
-  #             cost_phase_previous = lot.last.cost
-  #             weight_phase_previous = lot.last.weight
-  #            
-  #             if @product_treatment_phase.weight <= weight_phase_previous
-  #               #costo de la face anterior con los tratamientos 
-  #  
-  #               cost_phase_previous_with_treatments = ((cost_phase_previous * @product_treatment_phase.weight) + cost_treatments) /  @product_treatment_phase.weight
-  #               weight_phase_previous = weight_phase_previous - @product_treatment_phase.weight
-  #
-  #               new_cost = cost_phase_previous_with_treatments
-  #               new_weight = weight_phase_previous
-  #
-  #               #acutaliza el cost y weight la fase anterior 
-  #               ProductTreatmentPhase.find_by(id: @product_treatment_phase.product_treatment_phase_id).update(cost: new_cost, weight: new_weight)
-  #               #actualizo el cost la fase actual
-  #               @product_treatment_phase.cost = new_cost
-  #               #actualizo el cost y weight del lote de la face anterior
-  #               ProductTreatmentPhase.find_by(id: @product_treatment_phase.product_treatment_phase_id).lots.update(cost: new_cost, weight: new_weight)
-  #               #creo el lote de la fase actual
-  #              
-  #               if @product_treatment_phase.save  
-  #
-  #                 Lot.create(cost: new_cost, weight: @product_treatment_phase.weight, waste: 0.0, available: 0.0, product_treatment_phase_id:@product_treatment_phase.id)
-  #                 render json: @product_treatment_phase, status: :created, location: @product_treatment_phase
-  #                
-  #               else
-  #                 render json: @product_treatment_phase.errors, status: :unprocessable_entity
-  #               end   
-  #
-  #             else     
-  #               render json: { message: "El peso ingresado es mayor al del inventario" }
-  #             end
-  #
-  #           end 
-  #        end       
-  #     end  
-  #  
-  #    render json: @product_treatment_phase, status: :created, location: @product_treatment_phase
-  #  else
-  #    render json: @product_treatment_phase.errors, status: :unprocessable_entity
-  #  end
-  #end   
-
 
   # PATCH/PUT /product_treatment_phases/1
   def update
