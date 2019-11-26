@@ -48,13 +48,38 @@ class ProductsController < ApplicationController
 			initial_date = DateTime.parse(quantity[:initial_date] + ' 00:00:00')
 			last_date = DateTime.parse(quantity[:last_date] + ' 23:59:59')
 			quantities = Quantity.includes(:product).where("product_id = ? and created_at between ? and ?",quantity[:id],initial_date,last_date).group_by{ |x| x.product }.map{ |key,resource| [key.id,key.name,resource.map{ |q| q.cost}.reduce(:+).to_i,resource.map{ |q| q.weight}.reduce(:+).to_i]}
-			render json: quantities, status: :created, location: quantity
-			#render json: quantities, status: :created, each_serializer: ProductQuantitiesSerializer
-		else
+            #render json: quantities, status: :created, location: quantity
+            if quantities.nil?
+		        render json: { product_id: quantities[0][0], name: quantities[0][1], cost: quantities[0][2], weight: quantities[0][3] }
+            end
+        else
           	render json: { message: "las fechas no son validas" }
         end 
     end
 end
+
+def quantity_phase
+    quantity_phase = quantity_phase_lot_params
+    lot_phase = ProductTreatmentPhase.where(phase_id: quantity_phase[:id]).last.lot
+    if !lot_phase.nil?
+        render json: { cost: lot_phase[:cost] , weight: lot_phase[:weight]  }#, status: :created, location: quantity
+    else
+        render json: { message: "no existe un inventario de esa face" }
+    end 
+end
+
+def quantity_pull
+    
+    lot_phase = ProductTreatmentPhase.where(phase_id: 3).last.lot
+
+    if !lot_phase.nil?
+        render json: { cost: lot_phase[:cost] , weight: lot_phase[:weight]  }#, status: :created, location: quantity
+    else
+        render json: { message: "no existe un inventario de esa face" }
+    end 
+end
+
+
 
   private
     # Use callbacks to share common setup or constraints between actions.
@@ -69,6 +94,10 @@ end
 
     def quantity_product_params
       { id:params[:id], initial_date:params[:initial_date], last_date:params[:last_date] }
+    end
+
+    def quantity_phase_lot_params
+      { id:params[:phase_id] }
     end
 end
 
