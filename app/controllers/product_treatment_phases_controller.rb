@@ -99,13 +99,25 @@ class ProductTreatmentPhasesController < ApplicationController
                     if product_treatment_phase_new.weight <= weight_phase_previous
                         #costo de la face anterior con los tratamientos 
                         binding.pry
-                        product_treatment_phases = ProductTreatmentPhase.find(product_treatment_phase_new.product_treatment_phase_id).lot.product_treatment_phases
+                        product_treatment_phases = ProductTreatmentPhase.find(product_treatment_phase_new.product_treatment_phase_id).lot.product_treatment_phases.order(created_at: :asc).where("weight > 0")
+                        #product_treatment_phases = ProductTreatmentPhase.find(product_treatment_phase_new.product_treatment_phase_id).lot.product_treatment_phases.order(created_at: :asc)
                         weight_to_remove = product_treatment_phase_new.weight
-
+                        weight_to_remove_quantity = weight_to_remove
+                        temp = 0
                         product_treatment_phases.each do |product_treatment_phase|
                             
+                            binding.pry
                             weight = weight_to_remove >= product_treatment_phase.weight ? 0  : product_treatment_phase.weight - weight_to_remove
+                            ProductTreatmentPhase.find_by(id: product_treatment_phase.id).update(weight: weight)  
+                            binding.pry
                             
+                            temp = temp + product_treatment_phase.weight 
+                            
+                            if temp >= weight_to_remove
+                                break
+                            end
+
+                            binding.pry
                         end # --->>> closed each
 
                             cost_phase_previous_with_treatments = ((( cost_phase_previous * product_treatment_phase_new.weight) + cost_treatments) / product_treatment_phase_new.weight )
@@ -120,20 +132,35 @@ class ProductTreatmentPhasesController < ApplicationController
                             ProductTreatmentPhase.find_by(id: product_treatment_phase_new.product_treatment_phase_id).lot.update(weight: weight_phase_previous)
 
                             #si mi phase anterior tiene un lote en mi misma face actual
-                            lot_phase_previous = ProductTreatmentPhase.find_by(id: product_treatment_phase_new.product_treatment_phase_id).product_treatment_phases.where("phase_id = ? and lot_id is not null",product_treatment_phase_new.phase_id).last
-                    
+                            #lot_phase_previous = ProductTreatmentPhase.find_by(id: product_treatment_phase_new.product_treatment_phase_id).product_treatment_phases.where("phase_id = ? and lot_id is not null",product_treatment_phase_new.phase_id).last
+                            
+                            begin 
+                                binding.pry
+                                lot_phase_previous = ProductTreatmentPhase.find_by(id: product_treatment_phase_new.product_treatment_phase_id).product_treatment_phases.where("phase_id = ? and lot_id is not null",product_treatment_phase_new.phase_id).last.lot
+                                binding.pry
+                            rescue
+                                lot_phase_previous = nil 
+                            end
+
                             if lot_phase_previous.nil? 
+                                binding.pry
                                 puts "--->>>NO hay una lote posterior de las phase anteior<<<---"
                                 lot_new = Lot.create(cost: new_cost, weight: product_treatment_phase_new.weight, waste: 0.0, available: 0.0)
-                                product_treatment_phase_new.lot_id = lot_new.id 
+                                product_treatment_phase_new.lot_id = lot_new.id
+                                binding.pry 
                             else
+                                binding.pry
                                 puts "--->>>La face anterioir tiene faces con un lote en la face actual<<<---" 
-                                product_treatment_phase_new.lot_id = lot_phase_previous.lot_id
+                                #product_treatment_phase_new.lot_id = lot_phase_previous.lot_id
+                                product_treatment_phase_new.lot_id = lot_phase_previous.id
                                 #si hay un lote en la misma face que voy a crear
+                                binding.pry
                                 lot_phase_previous.cost = (((lot_phase_previous.cost * product_treatment_phase_new.weight) + cost_treatments) / product_treatment_phase_new.weight)
-                                Lot.find_by(id: lot_phase_previous.lot_id).update(weight: lot_phase_previous.weight + product_treatment_phase_new.weight,cost: lot_phase_previous.cost )
+                                binding.pry
+                                Lot.find_by(id: lot_phase_previous.id).update(weight: lot_phase_previous.weight + product_treatment_phase_new.weight,cost: lot_phase_previous.cost )
+                                binding.pry
                             end 
-                            
+                            binding.pry
                         
                     else  
                         render json: { message: "El peso ingresado es mayor al del inventario" }

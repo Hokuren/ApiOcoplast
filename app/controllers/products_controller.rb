@@ -44,39 +44,38 @@ class ProductsController < ApplicationController
     if quantity[:initial_date].nil? and quantity[:last_date].nil?   
     	quantities = Quantity.includes(:product).where("product_id = ?",quantity[:id]).group_by{ |x| x.product}.map{ |key,resource| [key.name,resource.map{ |q| q.cost}.reduce(:+).to_i,resource.map{ |q| q.weight}.reduce(:+).to_i]}
 	else
-		if Date.parse(quantity[:initial_date]) and Date.parse(quantity[:last_date])
+        if Date.parse(quantity[:initial_date]) and Date.parse(quantity[:last_date])
 			initial_date = DateTime.parse(quantity[:initial_date] + ' 00:00:00')
 			last_date = DateTime.parse(quantity[:last_date] + ' 23:59:59')
 			quantities = Quantity.includes(:product).where("product_id = ? and created_at between ? and ?",quantity[:id],initial_date,last_date).group_by{ |x| x.product }.map{ |key,resource| [key.id,key.name,resource.map{ |q| q.cost}.reduce(:+).to_i,resource.map{ |q| q.weight}.reduce(:+).to_i]}
-            #render json: quantities, status: :created, location: quantity
-            if quantities.nil?
-		        render json: { product_id: quantities[0][0], name: quantities[0][1], cost: quantities[0][2], weight: quantities[0][3] }
+            if !quantities.nil?
+                render json: { product_id: quantities[0][0], name: quantities[0][1], cost: quantities[0][2], weight: quantities[0][3] }
             end
         else
           	render json: { message: "las fechas no son validas" }
         end 
-    end
+    end 
 end
 
 def quantity_phase
+    begin
     quantity_phase = quantity_phase_lot_params
     lot_phase = ProductTreatmentPhase.where(phase_id: quantity_phase[:id]).last.lot
-    if !lot_phase.nil?
         render json: { cost: lot_phase[:cost] , weight: lot_phase[:weight]  }#, status: :created, location: quantity
-    else
+    rescue
         render json: { message: "no existe un inventario de esa face" }
-    end 
+    end
 end
 
 def quantity_pull
-    
-    lot_phase = ProductTreatmentPhase.where(phase_id: 3).last.lot
 
-    if !lot_phase.nil?
+    begin  
+        lot_phase = ProductTreatmentPhase.where(phase_id: 3).last.lot
         render json: { cost: lot_phase[:cost] , weight: lot_phase[:weight]  }#, status: :created, location: quantity
-    else
-        render json: { message: "no existe un inventario de esa face" }
-    end 
+    rescue  
+        render json: { message: "no existe un inventario de esa face" }    
+    end  
+   
 end
 
 
