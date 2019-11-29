@@ -33,10 +33,12 @@ ActiveRecord::Schema.define(version: 2019_11_11_072729) do
     t.integer "phase_id", null: false
     t.integer "product_treatment_phase_id"
     t.integer "lot_id"
+    t.integer "product_id"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["lot_id"], name: "index_product_treatment_phases_on_lot_id"
     t.index ["phase_id"], name: "index_product_treatment_phases_on_phase_id"
+    t.index ["product_id"], name: "index_product_treatment_phases_on_product_id"
     t.index ["product_treatment_phase_id"], name: "index_product_treatment_phases_on_product_treatment_phase_id"
   end
 
@@ -65,6 +67,7 @@ ActiveRecord::Schema.define(version: 2019_11_11_072729) do
   create_table "quantities", force: :cascade do |t|
     t.decimal "cost"
     t.decimal "weight"
+    t.decimal "weight_initial"
     t.integer "product_id", null: false
     t.integer "lot_id", null: false
     t.datetime "created_at", precision: 6, null: false
@@ -82,6 +85,7 @@ ActiveRecord::Schema.define(version: 2019_11_11_072729) do
   add_foreign_key "product_treatment_phases", "lots"
   add_foreign_key "product_treatment_phases", "phases"
   add_foreign_key "product_treatment_phases", "product_treatment_phases"
+  add_foreign_key "product_treatment_phases", "products"
   add_foreign_key "product_treatments", "product_treatment_phases"
   add_foreign_key "product_treatments", "product_treatments"
   add_foreign_key "product_treatments", "treatments"

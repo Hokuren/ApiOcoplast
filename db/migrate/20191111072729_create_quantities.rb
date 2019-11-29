@@ -3,6 +3,7 @@ class CreateQuantities < ActiveRecord::Migration[6.0]
     create_table :quantities do |t|
       t.numeric :cost
       t.numeric :weight
+      t.numeric :weight_initial
       t.references :product, null: false, foreign_key: true
       t.references :lot, null: false, foreign_key: true
 
