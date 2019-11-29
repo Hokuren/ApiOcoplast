@@ -1,4 +1,4 @@
-class ProductTreatmentPhasesController < ApplicationController
+wclass ProductTreatmentPhasesController < ApplicationController
   before_action :set_product_treatment_phase, only: [:show, :update, :destroy]
 
   # GET /product_treatment_phases
@@ -103,7 +103,7 @@ class ProductTreatmentPhasesController < ApplicationController
                         #product_treatment_phases = ProductTreatmentPhase.find(product_treatment_phase_new.product_treatment_phase_id).lot.product_treatment_phases.order(created_at: :asc)
                         weight_to_remove = product_treatment_phase_new.weight
                         weight_to_remove_quantity = weight_to_remove
-                        temp = 0
+                        temp = weight_to_remove_quantity
                         product_treatment_phases.each do |product_treatment_phase|
                             
                             binding.pry
@@ -111,9 +111,7 @@ class ProductTreatmentPhasesController < ApplicationController
                             ProductTreatmentPhase.find_by(id: product_treatment_phase.id).update(weight: weight)  
                             binding.pry
                             
-                            temp = temp + product_treatment_phase.weight 
-                            
-                            if temp >= weight_to_remove
+                            if product_treatment_phase.weight >= temp
                                 break
                             end
 

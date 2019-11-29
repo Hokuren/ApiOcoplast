@@ -36,21 +36,32 @@
             @lot = Lot.new(cost: 0, weight: 0, waste: 0, available: 0)
             @producttreatmentphase = ProductTreatmentPhase.new(cost: 0, weight: 0, lot_id: @lot.id)
             @producttreatmentphase.phase_id = 1
-            #si hay un lote con costo 0 del producto 
+            
             lot = Lot.where(cost: 0).joins(:quantities).where(quantities: { product_id: @quantity.product_id }).size 
+            #si hay un lote  del producto 
+            #binding.pry
+            #lot = Lot.joins(:quantities , :product_treatment_phases).where(quantities: { product_id: @quantity.product_id } , product_treatment_phases: { product_treatment_phase_id: nil } )
+            #binding.pry
+            
             if lot == 0
                 puts "--->>> inicio if <<<---"
                 if @lot.save
                     @producttreatmentphase.lot_id = @lot.id
+                    #@producttreatmentphase.cost = @quantity.cost
+                    #@producttreatmentphase.weight = @quantity.weight
                     @quantity.lot_id = @lot.id
                     @producttreatmentphase.save
                 end 
             else 
+                binding.pry
                 puts "--->>> inicio else <<<---"
-                @quantity.lot_id = Lot.last.id
+                #lot_new_cost = ( ((lot.last.cost * lot.last.weight) + @quantity.cost) / ( lot.last.weight + @quantity.weight ) )
+                #lot_new_weight = lot.last.weight + @quantity.weight
+                #lot.update( cost: lot_new_cost, weight: lot_new_weight )
+                @quantity.lot_id = lot.last.id
+                binding.pry
             end 
-            
-        
+          
             if @quantity.save!
                 render json: @quantity, status: :created, location: @quantity
             else

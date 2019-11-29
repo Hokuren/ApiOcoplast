@@ -1,0 +1,26 @@
+class PhaseQuantitiesSerializer < ActiveModel::Serializer
+attributes :lot, :product,:phase,
+			
+def lot
+	return { 
+			lot_id: object.lot.id,
+			cost: object.lot.cost, 
+			weight: object.lot.weight 
+	} 
+end
+
+def product
+	product = Product.joins(:quantities).where(quantities: { lot_id:  object.lot.id }).last
+	return { product_id: product.id,
+			 name: product.name
+			} 
+end
+
+def phase
+	return { phase_id: object.phase.id ,
+			 name: object.phase.name
+			}
+end
+
+
+end

@@ -57,28 +57,62 @@ class ProductsController < ApplicationController
     end 
 end
 
-def quantity_phase
-    begin
-    quantity_phase = quantity_phase_lot_params
-    lot_phase = ProductTreatmentPhase.where(phase_id: quantity_phase[:id]).last.lot
-        render json: { cost: lot_phase[:cost] , weight: lot_phase[:weight]  }#, status: :created, location: quantity
-    rescue
-        render json: { message: "no existe un inventario de esa face" }
-    end
+
+#phase_quantities
+def quantity_phase  
+	quantity_phase = quantity_phase_lot_params
+	
+	#lot_phase = Lot.joins(:product_treatment_phases).where(product_treatment_phases: { phase_id: quantity_phase[:id] })
+	#binding.pry
+	#phase_initial = ProductTreatmentPhase.where(lot_id: lot_phase.last.id )
+	#ids = phase_initial.ids
+	#binding.pry
+	#loop do 
+	#	binding.pry
+	#	phase = ProductTreatmentPhase.find_by(id: ids )
+	#	binding.pry
+	#	ids  = phase.product_treatment_phase_id
+	#	binding.pry
+	#	if phase.product_treatment_phase_id.nil?
+	#		break
+	#	end
+	#end
+
+	unless quantity_phase[:id].nil? and quantity_phase[:product_id].nil?
+		if !quantity_phase[:id].nil? and quantity_phase[:product_id].nil?
+			begin
+				#lot_phase = ProductTreatmentPhase.where(phase_id: quantity_phase[:id])
+				lot_phase = Lot.joins(:product_treatment_phases).where(product_treatment_phases: { phase_id: quantity_phase[:id] })
+				render json: lot_phase , each_serializer: PhaseQuantitiesSerializer
+			rescue
+				render json: { message: "no existe un inventario de esa face" }
+			end
+		elsif !quantity_phase[:id].nil? and !quantity_phase[:product_id].nil?
+			begin
+				#lot_phase = ProductTreatmentPhase.joins(lot: [:quantities]).where(phase_id: quantity_phase[:id], quantities: { product_id: quantity_phase[:product_id]}).last
+				lot_phase = Lot.joins(:product_treatment_phases, :quantities).where( product_treatment_phases: { phase_id: quantity_phase[:id] } , quantities:{ product_id: quantity_phase[:product_id] }).last
+				render json: lot_phase , serializer: PhaseQuantitiesSerializer
+			rescue
+				render json: { message: "no existe un invetario de ese producto en la fase" }
+			end	
+		end
+	else 
+		render json: { message: "no enviaste parametros" }	
+	end
 end
 
+
+#pull_quantities
 def quantity_pull
 
     begin  
         lot_phase = ProductTreatmentPhase.where(phase_id: 3).last.lot
-        render json: { cost: lot_phase[:cost] , weight: lot_phase[:weight]  }#, status: :created, location: quantity
+        render json: lot_phase ,each_serializer: PullQuantitiesSerializer
     rescue  
         render json: { message: "no existe un inventario de esa face" }    
     end  
    
 end
-
-
 
   private
     # Use callbacks to share common setup or constraints between actions.
@@ -96,9 +130,7 @@ end
     end
 
     def quantity_phase_lot_params
-      { id:params[:phase_id] }
+      { id:params[:phase_id] , product_id:params[:product_id] }
     end
 end
 
-#ojo consulta
-#Quantity.includes(:product).where(product_id:[4]).group_by{|x| x.product}.map{|key,resource| [key.name,resource.map{|q| q.cost}.reduce(:+).to_i,resource.map{|q| q.weight}.reduce(:+).to_i]}
