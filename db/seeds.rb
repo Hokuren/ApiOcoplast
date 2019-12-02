@@ -8,6 +8,9 @@
 
 
 Product.create(name: 'Rimax',cost: 0,weight: 0)
+Product.create(name: 'Tapas de Gaseosa',cost: 0,weight: 0)
+Product.create(name: 'Pasta',cost: 0,weight: 0)
+Product.create(name: 'Canasta',cost: 0,weight: 0)
 
 Treatment.create(name: 'Molido 1')
 Treatment.create(name: 'Molido 2')
