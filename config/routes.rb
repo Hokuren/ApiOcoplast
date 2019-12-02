@@ -11,5 +11,6 @@ Rails.application.routes.draw do
   post '/product_quantities/', to: 'products#quantity'
   post '/phase_quantities/', to: 'products#quantity_phase'
   get '/pull_quantities/', to: 'products#quantity_pull'
+  post 'product_treatment_phases/classification', to: 'product_treatment_phases#classification'
   # For details on the DSL available within this file, see https://guides.rubyonrails.org/routing.html
 end

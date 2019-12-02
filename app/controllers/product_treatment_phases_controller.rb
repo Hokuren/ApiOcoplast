@@ -189,6 +189,19 @@ class ProductTreatmentPhasesController < ApplicationController
 end #--- >>> Closed method
 
 
+
+  # POST /classification_product_treatment_phase_params
+  def classification
+
+    binding.pry
+    classification = classification_product_treatment_phase_params
+    binding.pry
+  
+   
+end #--- >>> Closed method
+
+
+
   # PATCH/PUT /product_treatment_phases/1
   def update
     if @product_treatment_phase.update(product_treatment_phase_params)
@@ -220,5 +233,14 @@ end #--- >>> Closed method
         product_treatments_attributes: [ :cost, :weight, :waste, :treatment_id, :treatment_new_name ]
       )
     end
-  
+    
+    def classification_product_treatment_phase_params
+    {  weight: params[weight],
+       cost: params[cost],
+       phase_id: params[phase_id],
+       product_id: params[product_id],
+       product_treatment_phase_id: params[product_treatment_phase_id],
+       classification: [ weight: params[weight_classification], phase_id: params[phase_id], product_id: params[product_id] ] 
+    }
+    end
 end

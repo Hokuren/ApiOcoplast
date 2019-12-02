@@ -29,24 +29,40 @@
             @producttreatmentphase.product_id = @quantity.product_id
             ##si hay un lote  del producto
             ##lot = Lot.where(cost: 0).joins(:quantities).where(quantities: { product_id: @quantity.product_id }).size 
-            lot = Lot.joins(:quantities , :product_treatment_phases).where(quantities: { product_id: @quantity.product_id } , product_treatment_phases: { product_treatment_phase_id: nil } ).last
-    
+			lot = Lot.joins(:quantities , :product_treatment_phases).where(quantities: { product_id: @quantity.product_id } , product_treatment_phases: { product_treatment_phase_id: nil } ).last
             ##if lot == 0
-            if lot.nil?
+			if lot.nil?
 				puts "--->>> inicio if <<<---"
 				@lot.cost = ( @quantity.cost / @quantity.weight )
 				@lot.weight = @quantity.weight
-                if @lot.save
+				if @lot.save
                     @producttreatmentphase.lot_id = @lot.id
                     @producttreatmentphase.cost = ( @quantity.cost / @quantity.weight )
                     @producttreatmentphase.weight = @quantity.weight
                     @quantity.lot_id = @lot.id
-                    @producttreatmentphase.save
+					@producttreatmentphase.save
                 end 
             else 
                 puts "--->>> inicio else <<<---"
-                lot_new_cost = (  ( (lot.cost * lot.weight) + (@quantity.cost)  )/ ( lot.weight + @quantity.weight )  )              
-                lot_new_weight = lot.weight + @quantity.weight
+                #lot_new_cost = (  ( (lot.cost * lot.weight) + (@quantity.cost)  )/ ( lot.weight + @quantity.weight )  )              
+				#lot_new_weight = lot.weight + @quantity.weight
+				binding.pry
+				quantities = Quantity.joins(:lot).where(lot_id: lot.id)
+				lot_new_cost = 0
+				lot_new_weight = 0
+				cost_quantities = 0
+				weight_quantities = 0
+				binding.pry
+				quantities.each do |quantity|
+					binding.pry
+					cost_quantities = cost_quantities + ( ( quantity.cost / quantity.weight_initial ) *  quantity.weight)
+					weight_quantities = weight_quantities + quantity.weight
+					binding.pry
+				end
+				binding.pry
+				lot_new_cost = (  (cost_quantities + @quantity.cost) / ( weight_quantities + @quantity.weight )  )              
+				lot_new_weight = weight_quantities + @quantity.weight
+				binding.pry
                 lot.update( cost: lot_new_cost, weight: lot_new_weight )
                 lot.product_treatment_phases.where(product_treatment_phase_id: nil).last.update( cost: lot_new_cost, weight: lot_new_weight )		
                 @quantity.lot_id = lot.id
@@ -60,7 +76,6 @@
         end
     end # --->>> Colsed Transaction    
   end #--->>> Closed Method
-
 
   # PATCH/PUT /quantities/1
   def update
