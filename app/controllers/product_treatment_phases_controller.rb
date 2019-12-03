@@ -231,7 +231,8 @@ end #--- >>> Closed method
         end 
 
         product_treatment_phase.lot_id = lot_previous.id
-        ##Quantity.create(cost: product_treatment_phase.cost, weight: product_treatment_phase.weight, weight_initial: product_treatment_phase.weight, product_id: product_treatment_phase.product_id, lot_id: lot_previous_classification.id)     
+        
+        Quantity.create(cost: product_treatment_phase.cost, weight: product_treatment_phase.weight, weight_initial: product_treatment_phase.weight, product_id: product_treatment_phase.product_id, lot_id: lot_previous.id)     
 
         ProductTreatmentPhase.transaction do 
 
@@ -247,7 +248,7 @@ end #--- >>> Closed method
                             lot_previous_classification.update(cost: new_cost_classification, weight: new_weight_classification)
                         end 
                         ProductTreatmentPhase.create(cost: cost_kilo, weight: classification[:weight], phase_id: classification[:phase_id], product_treatment_phase_id: product_treatment_phase.id, lot_id: lot_previous_classification.id, product_id: classification[:product_id])
-                        ##Quantity.create(cost: product_treatment_phase.cost, weight: product_treatment_phase.weight, weight_initial: product_treatment_phase.weight, product_id: product_treatment_phase.product_id, lot_id: lot_previous_classification.id)     
+                        Quantity.create(cost: product_treatment_phase.cost, weight: classification[:weight], weight_initial: product_treatment_phase.weight, product_id: product_treatment_phase.product_id, lot_id: lot_previous_classification.id)     
                     end
                     render json: product_treatment_phase , each_serializer: ProductTreatmentPhaseClassificationSerializer 
                 end #--->>> closed unless
@@ -294,19 +295,6 @@ end #--- >>> Closed method
       )
     end
 
-    # # Only allow a trusted parameter "white list" through.
-    # def classification_product_treatment_phase_params
-    #     params.require(:product_treatment_phase).permit(
-    #         :weight,
-    #         :cost,
-    #         :cost_treatments
-    #         :phase_id,
-    #         :product_id,
-    #         :product_treatment_phase_id,
-    #         classification: [ :weight, :phase_id, :product_id ] 
-    #     )
-    # end
-    
      def classification_product_treatment_phase_params
      {   
        weight: params[:weight],
