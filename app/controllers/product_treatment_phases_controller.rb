@@ -35,8 +35,8 @@ class ProductTreatmentPhasesController < ApplicationController
                         puts "--->>>if se crea Tratamiento<<<---"
                         treatment = Treatment.create(name: product_treatment[:treatment_new_name] )
                     end
-                product_treatment[:treatment_id] = treatment.id
-                cost_treatments = cost_treatments + product_treatment[:cost]
+                    product_treatment[:treatment_id] = treatment.id
+                    cost_treatments = cost_treatments + product_treatment[:cost]
                 end 
             end
 
@@ -138,6 +138,7 @@ class ProductTreatmentPhasesController < ApplicationController
                             
                             begin 
                                 lot_phase_previous = ProductTreatmentPhase.find_by(id: product_treatment_phase_new.product_treatment_phase_id).product_treatment_phases.where("phase_id = ? and lot_id is not null",product_treatment_phase_new.phase_id).last.lot
+                                #lot_phase_previous = Lot.joins(:product_treatment_phases).where(product_treatment_phases: { id: product_treatment_phase_new.product_treatment_phase_id }).last
                             rescue
                                 lot_phase_previous = nil 
                             end
@@ -151,7 +152,28 @@ class ProductTreatmentPhasesController < ApplicationController
                                 #product_treatment_phase_new.lot_id = lot_phase_previous.lot_id
                                 product_treatment_phase_new.lot_id = lot_phase_previous.id
                                 #si hay un lote en la misma face que voy a crear
-                                lot_phase_previous.cost = (((lot_phase_previous.cost * product_treatment_phase_new.weight) + cost_treatments) / product_treatment_phase_new.weight)
+                                #___Inicio_Nuevo___ #
+                                # product_treatment_phase_last = ProductTreatmentPhase.joins(:lot).where(product_treatment_phases: { lot_id: product_treatment_phase_new.lot_id }) 
+                                # weight_t = 0
+                                # cost_t = 0
+                                # cost_i = 0
+                                # product_treatment_phase_last.each do |p|
+                                #     cost_i = p.cost * p.weight 
+                                #     weight_t = weight_t + p.weight
+                                #     cost_t = cost_t + cost_i                                    
+                                # end
+                                # cost_last = cost_i / weight_t
+                                # Lot.find_by(id: lot_phase_previous.id).update(weight: weight_t ,cost: cost_last )
+                                #___Fin_Nuevo___ #
+                                ###binding.pry
+                                ##lot_phase_previous.cost = (((lot_phase_previous.cost * product_treatment_phase_new.weight) + cost_treatments) / product_treatment_phase_new.weight)
+                                ##Lot.find_by(id: lot_phase_previous.id).update(weight: lot_phase_previous.weight + product_treatment_phase_new.weight,cost: lot_phase_previous.cost )
+                                cost_previous_lot = (lot_phase_previous.cost * lot_phase_previous.weight) 
+                                cost_new_lot = ( product_treatment_phase_new.cost * product_treatment_phase_new.weight )   
+                                lot_phase_previous.cost = ( cost_previous_lot + cost_new_lot ) / ( lot_phase_previous.weight + product_treatment_phase_new.weight )
+                                ###binding.pry
+                                lot_phase_previous.cost
+                                ###binding.pry
                                 Lot.find_by(id: lot_phase_previous.id).update(weight: lot_phase_previous.weight + product_treatment_phase_new.weight,cost: lot_phase_previous.cost )
                             end  
                         else  
@@ -199,67 +221,80 @@ end #--- >>> Closed method
 
 
 
-  # POST /classification_product_treatment_phase_params
-  def classification
+    # POST /classification_product_treatment_phase_params
+    def classification
 
-    classification = classification_product_treatment_phase_params
+        classification = classification_product_treatment_phase_params
 
-    weight_products = 0
-    classification[:classification].each do |c|
-        weight_products = weight_products + c[:weight]    
-    end
+        weight_products = 0
+        classification[:classification].each do |c|
+            weight_products = weight_products + c[:weight]    
+        end
 
-    if weight_products <= classification[:weight]
-        cost_kilo = ( classification[:cost] + classification[:cost_treatments] ) / classification[:weight]
-        product_treatment_phase = ProductTreatmentPhase.new(
-        cost: cost_kilo,
-        weight: classification[:weight] - weight_products,
-        phase_id: classification[:phase_id],
-        product_treatment_phase_id: nil,
-        lot_id: nil, 
-        product_id: classification[:product_id]                      
-        )
+        if weight_products <= classification[:weight]
+            cost_kilo = ( classification[:cost] + classification[:cost_treatments] ) / classification[:weight]
+            product_treatment_phase = ProductTreatmentPhase.new(
+            cost: cost_kilo,
+            weight: classification[:weight] - weight_products,
+            phase_id: classification[:phase_id],
+            product_treatment_phase_id: nil,
+            lot_id: nil, 
+            product_id: classification[:product_id]                      
+            )
 
-        lot_previous = Lot.joins(:product_treatment_phases).where(product_treatment_phases: { product_id: classification[:product_id], phase_id: classification[:phase_id] }).last
+            lot_previous = Lot.joins(:product_treatment_phases).where(product_treatment_phases: { product_id: classification[:product_id], phase_id: classification[:phase_id] }).last
 
-        if lot_previous.nil?
-            lot_previous = Lot.create(cost: cost_kilo, weight: classification[:weight] - weight_products)
-        else 
-            new_cost = ( ( (lot_previous.cost * lot_previous.weight) + (cost_kilo * classification[:weight]) ) / (lot_previous.weight + classification[:weight]) )
-            new_weight = (lot_previous.weight + product_treatment_phase.weight) 
-            lot_previous.update(cost: new_cost, weight: new_weight)
-        end 
+            if lot_previous.nil?
+                lot_previous = Lot.create(cost: cost_kilo, weight: classification[:weight] - weight_products)
+            else 
+                new_cost = ( ( (lot_previous.cost * lot_previous.weight) + (cost_kilo * classification[:weight]) ) / (lot_previous.weight + classification[:weight]) )
+                new_weight = (lot_previous.weight + product_treatment_phase.weight) 
+                lot_previous.update(cost: new_cost, weight: new_weight)
+            end 
 
-        product_treatment_phase.lot_id = lot_previous.id
-        
-        Quantity.create(cost: product_treatment_phase.cost, weight: product_treatment_phase.weight, weight_initial: product_treatment_phase.weight, product_id: product_treatment_phase.product_id, lot_id: lot_previous.id)     
-
-        ProductTreatmentPhase.transaction do 
-
-            if product_treatment_phase.save
-                unless classification[:classification].nil? 
-                    classification[:classification].each do |classification|
-                        lot_previous_classification = Lot.joins(:product_treatment_phases).where(product_treatment_phases: { product_id: classification[:product_id], phase_id: classification[:phase_id] }).last
-                        if lot_previous_classification.nil?
-                            lot_previous_classification = Lot.create(cost: cost_kilo, weight: classification[:weight])
-                        else
-                            new_cost_classification = (  ( (lot_previous_classification.cost * lot_previous_classification.weight) + (cost_kilo * classification[:weight]) ) / (lot_previous_classification.weight + classification[:weight]) )
-                            new_weight_classification = lot_previous_classification.weight + classification[:weight]
-                            lot_previous_classification.update(cost: new_cost_classification, weight: new_weight_classification)
-                        end 
-                        ProductTreatmentPhase.create(cost: cost_kilo, weight: classification[:weight], phase_id: classification[:phase_id], product_treatment_phase_id: product_treatment_phase.id, lot_id: lot_previous_classification.id, product_id: classification[:product_id])
-                        Quantity.create(cost: product_treatment_phase.cost, weight: classification[:weight], weight_initial: product_treatment_phase.weight, product_id: product_treatment_phase.product_id, lot_id: lot_previous_classification.id)     
-                    end
-                    render json: product_treatment_phase , each_serializer: ProductTreatmentPhaseClassificationSerializer 
-                end #--->>> closed unless
+            product_treatment_phase.lot_id = lot_previous.id
+            
+            if classification[:phase_id] == 1 
+                Quantity.create(cost: (cost_kilo * product_treatment_phase.weight), weight: product_treatment_phase.weight, weight_initial: classification[:weight], product_id: product_treatment_phase.product_id, lot_id: lot_previous.id)     
             else
-                render json: { message: "No se guardo la fase", errors: product_treatment_phase.errors }
-            end  
-        end # --->>> closed transaction 
-    else
-        render json: { message: "El peso de lo productos a clasificar es mayor al del inventario"}      
-    end    
-end #--- >>> Closed method
+                Quantity.create(cost: (cost_kilo * product_treatment_phase.weight), weight: 0, weight_initial: classification[:weight], product_id: product_treatment_phase.product_id, lot_id: lot_previous.id)         
+            end 
+
+            ProductTreatmentPhase.transaction do 
+
+                if product_treatment_phase.save
+                    treatment = Treatment.where("name LIKE ?","%#{classification[:name_treatments]}%").last
+                    if treatment.nil? or treatment == []
+                        treatment = Treatment.create(name: classification[:name_treatments])
+                    end
+                    ProductTreatment.create( cost: classification[:cost_treatments], weight: classification[:weight],treatment_id: treatment.id , product_treatment_phase_id: product_treatment_phase.id )
+                    unless classification[:classification].nil? 
+                        classification[:classification].each do |classification|
+                            lot_previous_classification = Lot.joins(:product_treatment_phases).where(product_treatment_phases: { product_id: classification[:product_id], phase_id: classification[:phase_id] }).last
+                            if lot_previous_classification.nil?
+                                lot_previous_classification = Lot.create(cost: cost_kilo, weight: classification[:weight])
+                            else
+                                new_cost_classification = (  ( (lot_previous_classification.cost * lot_previous_classification.weight) + (cost_kilo * classification[:weight]) ) / (lot_previous_classification.weight + classification[:weight]) )
+                                new_weight_classification = lot_previous_classification.weight + classification[:weight]
+                                lot_previous_classification.update(cost: new_cost_classification, weight: new_weight_classification)
+                            end 
+                            ProductTreatmentPhase.create(cost: cost_kilo, weight: classification[:weight], phase_id: classification[:phase_id], product_treatment_phase_id: product_treatment_phase.id, lot_id: lot_previous_classification.id, product_id: classification[:product_id])
+                            if classification[:phase_id] == 1
+                                Quantity.create(cost: (cost_kilo * classification[:weight]), weight: classification[:weight], weight_initial: classification[:weight], product_id: classification[:product_id], lot_id: lot_previous_classification.id)     
+                            else
+                                Quantity.create(cost: (cost_kilo * classification[:weight]), weight: 0, weight_initial: classification[:weight], product_id: classification[:product_id], lot_id: lot_previous_classification.id)            
+                            end
+                        end
+                        render json: product_treatment_phase , each_serializer: ProductTreatmentPhaseClassificationSerializer 
+                    end #--->>> closed unless
+                else
+                    render json: { message: "No se guardo la fase", errors: product_treatment_phase.errors }
+                end  
+            end # --->>> closed transaction 
+        else
+            render json: { message: "El peso de lo productos a clasificar es mayor al del inventario"}      
+        end    
+    end #--- >>> Closed method
 
 
 
@@ -300,6 +335,7 @@ end #--- >>> Closed method
        weight: params[:weight],
        cost: params[:cost],
        cost_treatments: params[:cost_treatments],
+       name_treatments: params[:name_treatments],
        phase_id: params[:phase_id],
        product_id: params[:product_id],
        product_treatment_phase_id: params[:product_treatment_phase_id],

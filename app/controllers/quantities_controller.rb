@@ -29,8 +29,8 @@
             @producttreatmentphase.product_id = @quantity.product_id
             ##si hay un lote  del producto
             ##lot = Lot.where(cost: 0).joins(:quantities).where(quantities: { product_id: @quantity.product_id }).size 
-			lot = Lot.joins(:quantities , :product_treatment_phases).where(quantities: { product_id: @quantity.product_id } , product_treatment_phases: { product_treatment_phase_id: nil } ).last
-			##lot = Lot.joins(:product_treatment_phases).where(product_treatment_phases: { phase_id: @producttreatmentphase.phase_id  , product_id: @quantity.product_id } ).first
+			###lot = Lot.joins(:quantities , :product_treatment_phases).where(quantities: { product_id: @quantity.product_id } , product_treatment_phases: { product_treatment_phase_id: nil } ).last
+			lot = Lot.joins(:product_treatment_phases).where(product_treatment_phases: { phase_id: @producttreatmentphase.phase_id  , product_id: @quantity.product_id } ).first
 
             ##if lot == 0
 			if lot.nil?
@@ -59,8 +59,12 @@
 				end
 				lot_new_cost = (  (cost_quantities + @quantity.cost) / ( weight_quantities + @quantity.weight )  )              
 				lot_new_weight = weight_quantities + @quantity.weight
-                lot.update( cost: lot_new_cost, weight: lot_new_weight )
-                lot.product_treatment_phases.where(product_treatment_phase_id: nil).last.update( cost: lot_new_cost, weight: lot_new_weight )		
+				lot.update( cost: lot_new_cost, weight: lot_new_weight )
+				#binding.pry
+				lot.product_treatment_phases.where("product_treatment_phase_id is null or product_treatment_phase_id == 1" ).last.update( cost: lot_new_cost, weight: lot_new_weight )
+				#binding.pry
+				##lot.product_treatment_phases.where(product_treatment_phase_id: nil).last.update( cost: lot_new_cost, weight: lot_new_weight )	
+				#lot.update( cost: lot_new_cost, weight: lot_new_weight )	
                 @quantity.lot_id = lot.id
             end 
           

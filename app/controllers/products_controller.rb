@@ -48,7 +48,7 @@ class ProductsController < ApplicationController
 			if Date.parse(quantity[:initial_date]) and Date.parse(quantity[:last_date])
 				initial_date = DateTime.parse(quantity[:initial_date] + ' 00:00:00')
 				last_date = DateTime.parse(quantity[:last_date] + ' 23:59:59')
-				quantities = Quantity.includes(:product).where("product_id = ? and created_at between ? and ?",quantity[:id],initial_date,last_date).group_by{ |x| x.product }.map{ |key,resource| [key.id,key.name,resource.map{ |q| q.cost}.reduce(:+).to_i,resource.map{ |q| q.weight}.reduce(:+).to_i]}
+				quantities = Quantity.includes(:product).where("product_id = ? and created_at between ? and ?",quantity[:id],initial_date,last_date).group_by{ |x| x.product }.map{ |key,resource| [key.id,key.name,resource.map{ |q| q.cost}.reduce(:+).to_i,resource.map{ |q| q.weight_initial }.reduce(:+).to_i]}
 				if !quantities.nil?
 					render json: { product_id: quantities[0][0], name: quantities[0][1], cost: quantities[0][2], weight: quantities[0][3] }
 				end
