@@ -113,13 +113,27 @@ class ProductTreatmentPhasesController < ApplicationController
                             #le quitamos el peso que necesitamos a la fase anterior 
                             product_treatment_phases.each do |product_treatment_phase|
                                 
-                                weight = weight_to_remove >= product_treatment_phase.weight ? 0  : product_treatment_phase.weight - weight_to_remove
-                                ProductTreatmentPhase.find_by(id: product_treatment_phase.id).update(weight: weight)  
+                                 weight = weight_to_remove >= product_treatment_phase.weight ? 0  : product_treatment_phase.weight - weight_to_remove
+                                 ProductTreatmentPhase.find_by(id: product_treatment_phase.id).update(weight: weight)  
                                 
-                                if product_treatment_phase.weight >= temp
-                                    break
-                                end
+                                 if product_treatment_phase.weight >= temp
+                                     break
+                                 end
+                            #     if product_treatment_phase.weight >= weight_to_remove
+                            #         break
+                            #    end
 
+                            #     if weight_to_remove >= product_treatment_phase.weight 
+                            #         weight  = 0 
+                            #         weight_to_remove = weight_to_remove - product_treatment_phase.weight 
+                            #     else
+                            #         weight = product_treatment_phase.weight - weight_to_remove
+                            #     end
+                                
+                             
+                                Quantity.find_by(id: product_treatment_phase.id).update(weight: weight)
+
+                        
                             end # --->>> closed each
                             
                             cost_phase_previous_with_treatments = ((( cost_phase_previous * product_treatment_phase_new.weight) + cost_treatments) / product_treatment_phase_new.weight )
