@@ -53,18 +53,14 @@
 				lot_new_weight = 0
 				cost_quantities = 0
 				weight_quantities = 0
-				quantities.each do |quantity|
-					cost_quantities = cost_quantities + ( ( quantity.cost / quantity.weight_initial ) *  quantity.weight)
-					weight_quantities = weight_quantities + quantity.weight
-				end
-				lot_new_cost = (  (cost_quantities + @quantity.cost) / ( weight_quantities + @quantity.weight )  )              
-				lot_new_weight = weight_quantities + @quantity.weight
-				lot.update( cost: lot_new_cost, weight: lot_new_weight )
-				#binding.pry
+				##quantities.each do |quantity|
+				##	cost_quantities = cost_quantities + ( ( quantity.cost / quantity.weight_initial ) *  quantity.weight)
+				##	weight_quantities = weight_quantities + quantity.weight
+				##end
+				##lot_new_cost = (  (cost_quantities + @quantity.cost) / ( weight_quantities + @quantity.weight )  )              
+				##lot_new_weight = weight_quantities + @quantity.weight
+				##lot.update( cost: lot_new_cost, weight: lot_new_weight )
 				lot.product_treatment_phases.where("product_treatment_phase_id is null or product_treatment_phase_id == 1" ).last.update( cost: lot_new_cost, weight: lot_new_weight )
-				#binding.pry
-				##lot.product_treatment_phases.where(product_treatment_phase_id: nil).last.update( cost: lot_new_cost, weight: lot_new_weight )	
-				#lot.update( cost: lot_new_cost, weight: lot_new_weight )	
                 @quantity.lot_id = lot.id
             end 
           

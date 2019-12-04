@@ -119,18 +119,7 @@ class ProductTreatmentPhasesController < ApplicationController
                                  if product_treatment_phase.weight >= temp
                                      break
                                  end
-                            #     if product_treatment_phase.weight >= weight_to_remove
-                            #         break
-                            #    end
-
-                            #     if weight_to_remove >= product_treatment_phase.weight 
-                            #         weight  = 0 
-                            #         weight_to_remove = weight_to_remove - product_treatment_phase.weight 
-                            #     else
-                            #         weight = product_treatment_phase.weight - weight_to_remove
-                            #     end
-                                
-                             
+                    
                                 Quantity.find_by(id: product_treatment_phase.id).update(weight: weight)
 
                         
@@ -165,23 +154,6 @@ class ProductTreatmentPhasesController < ApplicationController
                                 puts "--->>>La face anterioir tiene faces con un lote en la face actual<<<---" 
                                 #product_treatment_phase_new.lot_id = lot_phase_previous.lot_id
                                 product_treatment_phase_new.lot_id = lot_phase_previous.id
-                                #si hay un lote en la misma face que voy a crear
-                                #___Inicio_Nuevo___ #
-                                # product_treatment_phase_last = ProductTreatmentPhase.joins(:lot).where(product_treatment_phases: { lot_id: product_treatment_phase_new.lot_id }) 
-                                # weight_t = 0
-                                # cost_t = 0
-                                # cost_i = 0
-                                # product_treatment_phase_last.each do |p|
-                                #     cost_i = p.cost * p.weight 
-                                #     weight_t = weight_t + p.weight
-                                #     cost_t = cost_t + cost_i                                    
-                                # end
-                                # cost_last = cost_i / weight_t
-                                # Lot.find_by(id: lot_phase_previous.id).update(weight: weight_t ,cost: cost_last )
-                                #___Fin_Nuevo___ #
-                                ###binding.pry
-                                ##lot_phase_previous.cost = (((lot_phase_previous.cost * product_treatment_phase_new.weight) + cost_treatments) / product_treatment_phase_new.weight)
-                                ##Lot.find_by(id: lot_phase_previous.id).update(weight: lot_phase_previous.weight + product_treatment_phase_new.weight,cost: lot_phase_previous.cost )
                                 cost_previous_lot = (lot_phase_previous.cost * lot_phase_previous.weight) 
                                 cost_new_lot = ( product_treatment_phase_new.cost * product_treatment_phase_new.weight )   
                                 lot_phase_previous.cost = ( cost_previous_lot + cost_new_lot ) / ( lot_phase_previous.weight + product_treatment_phase_new.weight )
@@ -205,8 +177,6 @@ class ProductTreatmentPhasesController < ApplicationController
                     weight_to_remove_quantity = product_treatment_phase_new.weight
                     temp2 = weight_to_remove_quantity
                     quantities.each do |quantity|
-                        ##weight_quantity = weight_to_remove >= quantity.weight ? 0  : quantity.weight - weight_to_remove
-                        ##Quantity.find_by(id: quantity.id).update(weight: weight_quantity)
                         if weight_to_remove >= quantity.weight 
                             weight_quantity  = 0 
                             weight_to_remove = weight_to_remove - quantity.weight 
