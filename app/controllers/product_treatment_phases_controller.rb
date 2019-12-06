@@ -15,7 +15,7 @@ class ProductTreatmentPhasesController < ApplicationController
 
   # POST /product_treatment_phases
   def create
-  
+    
     @product_treatment_phase = product_treatment_phase_params 
 
     phase_id_previous = params[:phase_id_previous]
@@ -151,7 +151,7 @@ end #--- >>> Closed method
         ProductTreatmentPhase.transaction do 
 
             weight_products = 0
-            classification[:classification].each do |c|
+            clasification.each do |c|
                 weight_products = weight_products + c[:weight]    
             end
             
@@ -238,7 +238,16 @@ end #--- >>> Closed method
         end # --->>> closed transaction
     end #--- >>> Closed method
 
-
+    def summary_accesses
+        begin
+            ActiveRecord::Base.transaction do
+                # codigo de la transaccion
+            end
+        rescue Exception => e
+            Rails.logger.debug("Excepción lanzada #{e.message}")
+            
+        end
+    end
 
   # PATCH/PUT /product_treatment_phases/1
   def update
