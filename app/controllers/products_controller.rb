@@ -69,7 +69,6 @@ def quantity_phase
 	unless quantity_phase[:id].nil? and quantity_phase[:product_id].nil?
 		if !quantity_phase[:id].nil? and quantity_phase[:product_id].nil?
 			begin
-				#lot_phase = ProductTreatmentPhase.where(phase_id: quantity_phase[:id])
 				lot_phase = Lot.joins(:product_treatment_phases).where(product_treatment_phases: { phase_id: quantity_phase[:id] }).distinct
 				render json: lot_phase , each_serializer: PhaseQuantitiesSerializer
 			rescue
@@ -77,7 +76,6 @@ def quantity_phase
 			end
 		elsif !quantity_phase[:id].nil? and !quantity_phase[:product_id].nil?
 			begin
-				#lot_phase = ProductTreatmentPhase.joins(lot: [:quantities]).where(phase_id: quantity_phase[:id], quantities: { product_id: quantity_phase[:product_id]}).last
 				lot_phase = Lot.joins(:product_treatment_phases, :quantities).where( product_treatment_phases: { phase_id: quantity_phase[:id] } , quantities:{ product_id: quantity_phase[:product_id] }).last
 				render json: lot_phase , serializer: PhaseQuantitiesSerializer
 			rescue

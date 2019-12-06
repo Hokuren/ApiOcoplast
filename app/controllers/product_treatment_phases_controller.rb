@@ -161,17 +161,9 @@ end #--- >>> Closed method
             if !classification[:weight_inventary].nil? && !lot_previous.nil?
                 inventary_initial = classification[:weight_inventary] 
                 inventary = lot_previous[:weight]
-                ##binding.pry
-                ###classification[:weight] = lot_previous[:weight]  
                 classification[:weight] = classification[:weight_inventary]
-                ##binding.pry
-                ###classification[:cost] =  ( lot_previous[:cost] * lot_previous[:weight] )
                 classification[:cost] =  ( lot_previous[:cost] * classification[:weight] )
-                ##binding.pry
-                ###lot_previous[:weight] =  ( lot_previous[:weight] - classification[:weight_inventary] ) 
-                lot_previous[:weight] =  ( lot_previous[:weight] - classification[:weight_inventary] )  
-                ##binding.pry
-                
+                lot_previous[:weight] =  ( lot_previous[:weight] - classification[:weight_inventary] )    
             end 
 
             if classification[:weight].nil?
@@ -179,7 +171,7 @@ end #--- >>> Closed method
             end
             
             if inventary_initial <= inventary
-                if weight_products <= inventary # classification[:weight] 
+                if weight_products <= inventary 
 
                     cost_kilo = ( classification[:cost] + classification[:cost_treatments] ) / classification[:weight]
 
@@ -191,10 +183,6 @@ end #--- >>> Closed method
                     lot_id: nil, 
                     product_id: classification[:product_id]                      
                     )
-
-                    ##binding.pry
-                    ##lot_previous = Lot.joins(:product_treatment_phases).where(product_treatment_phases: { product_id: classification[:product_id], phase_id: classification[:phase_id] }).last
-                    ##binding.pry
 
                     if lot_previous.nil?
                         lot_previous = Lot.create(cost: cost_kilo, weight: classification[:weight] - weight_products)
@@ -208,7 +196,6 @@ end #--- >>> Closed method
                      
                         lot_previous.update(cost: new_cost,weight: new_weight)
                         
-                        ##binding.pry
                     end 
 
                     product_treatment_phase.lot_id = lot_previous.id
