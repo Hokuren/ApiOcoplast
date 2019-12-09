@@ -20,16 +20,12 @@ class ProductTreatmentPhasesController < ApplicationController
 
     phase_id_previous = params[:phase_id_previous]
 
-    last_product_treatment_phase = ProductTreatmentPhase.where( product_id: @product_treatment_phase[:product_id], phase_id: phase_id_previous ).last
+    last_product_treatment_phase = ProductTreatmentPhase.last_by_product_per_phase(@product_treatment_phase[:product_id],phase_id_previous)
 
-    if last_product_treatment_phase.nil?
-        @product_treatment_phase[:product_treatment_phase_id] = nil
-    else
-        @product_treatment_phase[:product_treatment_phase_id] = last_product_treatment_phase.id
-    end 
-
-    inventary = Lot.joins(:product_treatment_phases).where(product_treatment_phases: { id: @product_treatment_phase[:product_treatment_phase_id] }).last
-
+    last_product_treatment_phase.nil? @product_treatment_phase[:product_treatment_phase_id] = nil : @product_treatment_phase[:product_treatment_phase_id] = last_product_treatment_phase.id
+ 
+    inventary = Lot.by_product_treatment_phase(@product_treatment_phase[:product_treatment_phase_id])
+   
     if @product_treatment_phase[:weight] <= inventary.weight
 
         treatments = Treatment.all
@@ -39,10 +35,8 @@ class ProductTreatmentPhasesController < ApplicationController
 
             @product_treatment_phase[:product_treatments_attributes].each do |product_treatment|
                 if product_treatment[:treatment_id].nil? 
-                    puts "--->>>if no tiene Tratamiento<<<---"
                     treatment = treatments.where("name LIKE ?", "%#{product_treatment[:treatment_new_name]}%").last
                     if treatment.nil?
-                        puts "--->>>if se crea Tratamiento<<<---"
                         treatment = Treatment.create(name: product_treatment[:treatment_new_name] )
                     end
                     product_treatment[:treatment_id] = treatment.id
@@ -50,7 +44,6 @@ class ProductTreatmentPhasesController < ApplicationController
                 end 
             end
 
-            #binding.pry 
             product_treatment_phase_new = ProductTreatmentPhase.new(
                 weight: @product_treatment_phase[:weight], 
                 phase_id: @product_treatment_phase[:phase_id],
@@ -59,35 +52,26 @@ class ProductTreatmentPhasesController < ApplicationController
                 product_treatments_attributes: @product_treatment_phase[:product_treatments_attributes].map{ |phase| { "cost" => phase[:cost], "treatment_id" => phase[:treatment_id] } }
             )
         
-            ### --- >>> inicio 
             product_treatment_phase_new.cost = 0 
 
             #validamos que tenga una face anterior 
             if !product_treatment_phase_new.product_treatment_phase_id.nil? 
-                puts "--->>>Primer if<<<---"
-                begin
-                    #lotClean = ProductTreatmentPhase.where(id: product_treatment_phase_new.product_treatment_phase_id, product_treatment_phase_id: nil).last.lots.where(weight: 0)
-                    lotClean = Lot.where(weight: 0).last.product_treatment_phases.where(id: product_treatment_phase_new.product_treatment_phase_id, product_treatment_phase_id: nil)
-                rescue
-                    lotClean = 0 
-                end
-                #validamos que el lote de la face anterior este seteado en 0
-                if lotClean.nil? 
                 
-                else
-                    puts "--->>> Entro al ElSE de lotClean <<<---"
+                lotClean = Lot.where(weight: 0).last.product_treatment_phases.where(id: product_treatment_phase_new.product_treatment_phase_id, product_treatment_phase_id: nil) || 0
+            
+                #validamos que el lote de la face anterior este seteado en 0     
+                unless lotClean.nil? 
+
                     #bucamos el lote de la face anterior 
                     lot = ProductTreatmentPhase.find(product_treatment_phase_new.product_treatment_phase_id).lot
-                    if !product_treatment_phase_new.product_treatment_phase_id.nil? and product_treatment_phase_new.phase_id == 2 and lot.cost == 0
-                     
-                    else 
-                        puts "--->>> No soy primera face <<<---"
+                    unless !product_treatment_phase_new.product_treatment_phase_id.nil? and product_treatment_phase_new.phase_id == 2 and lot.cost == 0 
+                        
                         cost_phase_previous = lot.cost
                         weight_phase_previous = lot.weight
                         
                         if product_treatment_phase_new.weight <= weight_phase_previous
                             
-                            product_treatment_phases = ProductTreatmentPhase.find(product_treatment_phase_new.product_treatment_phase_id).lot.product_treatment_phases.order(created_at: :asc).where("weight > 0")
+                            product_treatment_phases = lot.product_treatment_phases.order(created_at: :asc).where("weight > 0")
                    
                             cost_phase_previous_with_treatments = ((( cost_phase_previous * product_treatment_phase_new.weight) + cost_treatments) / product_treatment_phase_new.weight )
                             weight_phase_previous = weight_phase_previous - product_treatment_phase_new.weight
@@ -96,20 +80,14 @@ class ProductTreatmentPhasesController < ApplicationController
                             new_weight = weight_phase_previous
                             product_treatment_phase_new.cost = new_cost
                 
-                            ProductTreatmentPhase.find_by(id: product_treatment_phase_new.product_treatment_phase_id).lot.update(weight: weight_phase_previous)
+                            lot.update(weight: weight_phase_previous)
 
-                            begin 
-                                lot_phase_previous = ProductTreatmentPhase.find_by(id: product_treatment_phase_new.product_treatment_phase_id).product_treatment_phases.where("phase_id = ? and lot_id is not null",product_treatment_phase_new.phase_id).last.lot
-                            rescue
-                                lot_phase_previous = nil 
-                            end
-
+                            lot_phase_previous = ProductTreatmentPhase.find_by(id: product_treatment_phase_new.product_treatment_phase_id).product_treatment_phases.where("phase_id = ? and lot_id is not null",product_treatment_phase_new.phase_id).last.lot || nil
+                        
                             if lot_phase_previous.nil? 
-                                puts "--->>>NO hay una lote posterior de las phase anteior<<<---"
                                 lot_new = Lot.create(cost: new_cost, weight: product_treatment_phase_new.weight, waste: 0.0, available: 0.0)
                                 product_treatment_phase_new.lot_id = lot_new.id
                             else
-                                puts "--->>>La face anterioir tiene faces con un lote en la face actual<<<---" 
                                 product_treatment_phase_new.lot_id = lot_phase_previous.id
                                 cost_previous_lot = (lot_phase_previous.cost * lot_phase_previous.weight) 
                                 cost_new_lot = ( product_treatment_phase_new.cost * product_treatment_phase_new.weight )   
@@ -150,14 +128,10 @@ end #--- >>> Closed method
     
         ProductTreatmentPhase.transaction do 
 
-            weight_products = 0
-            clasification.each do |c|
-                weight_products = weight_products + c[:weight]    
-            end
+            weight_products = classification.pluck(:weight).reduce(:+) 
             
             lot_previous = Lot.joins(:product_treatment_phases).where(product_treatment_phases: { product_id: classification[:product_id], phase_id: classification[:phase_id] }).last 
 
-            
             if !classification[:weight_inventary].nil? && !lot_previous.nil?
                 inventary_initial = classification[:weight_inventary] 
                 inventary = lot_previous[:weight]
@@ -166,9 +140,7 @@ end #--- >>> Closed method
                 lot_previous[:weight] =  ( lot_previous[:weight] - classification[:weight_inventary] )    
             end 
 
-            if classification[:weight].nil?
-                classification[:weight] = 0
-            end
+            classification[:weight] || 0
             
             if inventary_initial <= inventary
                 if weight_products <= inventary 
@@ -190,20 +162,16 @@ end #--- >>> Closed method
                         new_cost = ( ( (lot_previous.cost * lot_previous.weight) + (cost_kilo * (classification[:weight] - weight_products ) ) ) / (lot_previous.weight + ( classification[:weight] - weight_products ) ) )
                         new_weight = (lot_previous.weight + product_treatment_phase.weight) 
                         
-                        if new_cost.nil? || new_cost.nan?
-                            new_cost = 0 
-                        end 
-                     
+                        new_cost = new_cost.nil? || new_cost.nan?  0 : new_cost 
+                      
                         lot_previous.update(cost: new_cost,weight: new_weight)
                         
                     end 
 
                     product_treatment_phase.lot_id = lot_previous.id
 
-                    if classification[:weight_inventary].nil?
-                        Quantity.create(cost: (cost_kilo * product_treatment_phase.weight), weight: product_treatment_phase.weight, weight_initial: classification[:weight], product_id: product_treatment_phase.product_id, lot_id: lot_previous.id)     
-                    end
-
+                    Quantity.create(cost: (cost_kilo * product_treatment_phase.weight), weight: product_treatment_phase.weight, weight_initial: classification[:weight], product_id: product_treatment_phase.product_id, lot_id: lot_previous.id) if classification[:weight_inventary].nil?   
+                    
                     if product_treatment_phase.save
                         treatment = Treatment.where("name LIKE ?","%#{classification[:name_treatments]}%").last
                         if treatment.nil? or treatment == []

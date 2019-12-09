@@ -10,4 +10,11 @@ class ProductTreatmentPhase < ApplicationRecord
 
   accepts_nested_attributes_for :product_treatments 
   
+
+  scope :last_by_product_per_phase, -> (product_id,phase_id_previous) { 
+    where( product_id: product_id, phase_id: phase_id_previous ).last
+  }
+ 
+
+
 end
