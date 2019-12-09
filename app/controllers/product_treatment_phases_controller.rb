@@ -22,7 +22,7 @@ class ProductTreatmentPhasesController < ApplicationController
 
     last_product_treatment_phase = ProductTreatmentPhase.last_by_product_per_phase(@product_treatment_phase[:product_id],phase_id_previous)
 
-    last_product_treatment_phase.nil? @product_treatment_phase[:product_treatment_phase_id] = nil : @product_treatment_phase[:product_treatment_phase_id] = last_product_treatment_phase.id
+    @product_treatment_phase[:product_treatment_phase_id] = last_product_treatment_phase.nil? ? nil : last_product_treatment_phase.id
  
     inventary = Lot.by_product_treatment_phase(@product_treatment_phase[:product_treatment_phase_id])
    
@@ -58,7 +58,7 @@ class ProductTreatmentPhasesController < ApplicationController
             if !product_treatment_phase_new.product_treatment_phase_id.nil? 
                 
                 lotClean = Lot.where(weight: 0).last.product_treatment_phases.where(id: product_treatment_phase_new.product_treatment_phase_id, product_treatment_phase_id: nil) || 0
-            
+                
                 #validamos que el lote de la face anterior este seteado en 0     
                 unless lotClean.nil? 
 
@@ -162,7 +162,7 @@ end #--- >>> Closed method
                         new_cost = ( ( (lot_previous.cost * lot_previous.weight) + (cost_kilo * (classification[:weight] - weight_products ) ) ) / (lot_previous.weight + ( classification[:weight] - weight_products ) ) )
                         new_weight = (lot_previous.weight + product_treatment_phase.weight) 
                         
-                        new_cost = new_cost.nil? || new_cost.nan?  0 : new_cost 
+                        new_cost = new_cost.nil? || new_cost.nan?  ? 0 : new_cost 
                       
                         lot_previous.update(cost: new_cost,weight: new_weight)
                         
