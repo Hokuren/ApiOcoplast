@@ -60,8 +60,10 @@ ActiveRecord::Schema.define(version: 2019_11_11_072729) do
     t.string "name"
     t.decimal "cost"
     t.decimal "weight"
+    t.integer "product_id"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.index ["product_id"], name: "index_products_on_product_id"
   end
 
   create_table "quantities", force: :cascade do |t|
@@ -89,6 +91,7 @@ ActiveRecord::Schema.define(version: 2019_11_11_072729) do
   add_foreign_key "product_treatments", "product_treatment_phases"
   add_foreign_key "product_treatments", "product_treatments"
   add_foreign_key "product_treatments", "treatments"
+  add_foreign_key "products", "products"
   add_foreign_key "quantities", "lots"
   add_foreign_key "quantities", "products"
 end

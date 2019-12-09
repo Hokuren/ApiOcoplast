@@ -7,10 +7,14 @@
 #   Character.create(name: 'Luke', movie: movies.first)
 
 
-Product.create(name: 'Rimax',cost: 0,weight: 0)
-Product.create(name: 'Tapas de Gaseosa',cost: 0,weight: 0)
-Product.create(name: 'Pasta',cost: 0,weight: 0)
-Product.create(name: 'Canasta',cost: 0,weight: 0)
+Product.create(name: 'Rimax',cost: 0,weight: 0,product_id: 1)
+Product.create(name: 'Tapas de Gaseosa',cost: 0,weight: 0,product_id: 2)
+Product.create(name: 'Pasta',cost: 0,weight: 0,product_id: 3)
+Product.create(name: 'Canasta',cost: 0,weight: 0,product_id: 4)
+
+Product.create(name: 'Rimax-Pasta',cost: 0,weight: 0,product_id: 1) # 5
+Product.create(name: 'Tapas de Gaseosa-Pasta',cost: 0,weight: 0,product_id: 2) # 6
+Product.create(name: 'Canasta-Pasta',cost: 0,weight: 0,product_id: 4) # 7
 
 Treatment.create(name: 'Molido 1')
 Treatment.create(name: 'Molido 2')

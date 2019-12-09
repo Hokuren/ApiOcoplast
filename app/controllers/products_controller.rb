@@ -18,6 +18,9 @@ class ProductsController < ApplicationController
     @product = Product.new(product_params)
 
     if @product.save
+      
+      @product.update(product_id: @product.id) if @product.product_id.nil? 
+      
       render json: @product, status: :created, location: @product
     else
       render json: @product.errors, status: :unprocessable_entity
@@ -50,7 +53,6 @@ class ProductsController < ApplicationController
             last_date = DateTime.parse(quantity[:last_date] + ' 23:59:59')
             quantities = Quantity.includes(:product).where("product_id = ? and created_at between ? and ?",quantity[:id],initial_date,last_date).group_by{ |x| x.product }.map{ |key,resource| [key.id,key.name,resource.map{ |q| q.cost}.reduce(:+).to_i,resource.map{ |q| q.weight_initial }.reduce(:+).to_i]}
             
-            ##quantities.nil? render json: { message: "No hay resgistros" } : render json: { product_id: quantities[0][0], name: quantities[0][1], cost: quantities[0][2], weight: quantities[0][3] }  
             if quantities.nil?
                 render json: { message: "No hay resgistros" }
             else 
@@ -85,7 +87,6 @@ def quantity_phase
         message = "no existe un invetario de ese producto" if lot_phase.nil?
     end
 
-    #lot_phase.nil? render json: message  : render json: lot_phase , each_serializer: PhaseQuantitiesSerializer
     if lot_phase.nil? 
         render json: { message: message }     
     else 
@@ -97,7 +98,7 @@ end
 def quantity_pull
 
     begin  
-        lot_phase = Lot.joins(:product_treatment_phases).where(product_treatment_phases: { phase_id: 3 }).distinct
+        lot_phase = Lot.joins(:product_treatment_phases).where(product_treatment_phases: { phase_id: 1 }).distinct
         render json: lot_phase , each_serializer: PullQuantitiesSerializer
     rescue  
         render json: { message: "no existe un inventario de esa face" }    
@@ -114,7 +115,7 @@ end
 
     # Only allow a trusted parameter "white list" through.
     def product_params
-      params.require(:product).permit(:name, :cost, :weight)
+      params.require(:product).permit(:name, :cost, :weight, :product_id)
     end
 
     def quantity_product_params

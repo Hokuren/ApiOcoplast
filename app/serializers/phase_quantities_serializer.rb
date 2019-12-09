@@ -12,8 +12,9 @@ end
 def product
 	product = ProductTreatmentPhase.where(lot_id: object.id).last.product
 	return { 
-			product_id: product.id,
-			name: product.name
+			id: product.id,
+			name: product.name,
+			product_id: product.product_id
 			} 
 end
 

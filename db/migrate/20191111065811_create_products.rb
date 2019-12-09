@@ -4,6 +4,7 @@ class CreateProducts < ActiveRecord::Migration[6.0]
       t.string :name
       t.numeric :cost
       t.numeric :weight
+      t.references :product, null: true, foreign_key: true
 
       t.timestamps
     end
