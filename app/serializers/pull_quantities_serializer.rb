@@ -1,41 +1,44 @@
 class PullQuantitiesSerializer < ActiveModel::Serializer
-attributes :id, :group_by_product ##, :phase, :product
-##, :cost, :weight , :phase , :product
+attributes :product, :phase, :group_by_product
 
 
 def group_by_product
-    binding.pry
-	products = Product.select("id").where(Product_id: self.object.product_id ).map{ |a| a.id }
-    binding.pry
-    lots = Lot.joins(:product_treatment_phases).where("phase_id = ? and product_id in ( ? )", self.object.phase_id, products).distinct
-    binding.pry
-    cost = lots.pluck(:cost).reduce(:+) 
-    binding.pry
-    weight = lots.pluck(:weight).reduce(:+) 
-    binding.pry
-    cost_weighted = ( cost / weight ) 
 
-    return { product_id: self.object.product_id, cost: cost_weighted, weight: weight }
+    products = Product.select("id").where(Product_id: self.object.product_id ).map{ |a| a.id }
+    products = self.object.product_id if products.nil? || products.empty?
+    lots = Lot.joins(:product_treatment_phases).where("phase_id = ? and product_id in ( ? )", self.object.phase_id, products).distinct
+
+    l = lots.map{|l| l.id}
+    p = ProductTreatmentPhase.where("id in ( ? )",l)
+    products_inventary = p.pluck(:product_id).uniq
+
+    cost = lots.map{ |m| p = m.cost * m.weight}.reduce(:+).to_i 
+    weight = lots.pluck(:weight).reduce(:+) 
+    cost_weighted = ( cost / weight ) 
+    cost_weighted = 0.0 if cost_weighted.nil? || cost_weighted.nan? 
+    return { product_id: [products_inventary], cost: cost_weighted, weight: weight }
+
 end
 
 
-# def phase
-# 	phase = ProductTreatmentPhase.where(lot_id: object.id).last.phase
-# 	return {
-# 			phase_id: phase.id,
-# 			name: phase.name
-# 	 	}
-# end
+def phase
+	phase = ProductTreatmentPhase.where(lot_id: self.object.lot_id).last.phase
+	return {
+			phase_id: phase.id,
+			name: phase.name
+	 	}
+end
 
 
-# def product
-# 	product = ProductTreatmentPhase.where(lot_id: object.id).last.product
-# 	return { 
-# 			id: product.id,
-# 			name: product.name,
-# 			product_id: product.product_id
-# 			} 
-# end
+def product
+	product = ProductTreatmentPhase.where(lot_id: self.object.lot_id).last.product
+	return { 
+			id: product.id,
+			name: product.name,
+			product_id: product.product_id
+		} 
+end
 
-	
+
+
 end

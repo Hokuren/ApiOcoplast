@@ -1,6 +1,7 @@
 class ProductsController < ApplicationController
   before_action :set_product, only: [:show, :update, :destroy]
 
+
   # GET /products
   def index
     @products = Product.all
@@ -8,11 +9,13 @@ class ProductsController < ApplicationController
     render json: @products
   end
 
+
   # GET /products/1
   def show
     render json: @product
   end
 
+  
   # POST /products
   def create
     @product = Product.new(product_params)
@@ -27,6 +30,7 @@ class ProductsController < ApplicationController
     end
   end
 
+
   # PATCH/PUT /products/1
   def update
     if @product.update(product_params)
@@ -36,10 +40,12 @@ class ProductsController < ApplicationController
     end
   end
 
+
   # DELETE /products/1
   def destroy
     @product.destroy
   end
+
 
   def quantity
     quantity = quantity_product_params	
@@ -53,7 +59,7 @@ class ProductsController < ApplicationController
             last_date = DateTime.parse(quantity[:last_date] + ' 23:59:59')
             quantities = Quantity.includes(:product).where("product_id = ? and created_at between ? and ?",quantity[:id],initial_date,last_date).group_by{ |x| x.product }.map{ |key,resource| [key.id,key.name,resource.map{ |q| q.cost}.reduce(:+).to_i,resource.map{ |q| q.weight_initial }.reduce(:+).to_i]}
             
-            if quantities.nil?
+            if quantities.nil? 
                 render json: { message: "No hay resgistros" }
             else 
                 render json: { product_id: quantities[0][0], name: quantities[0][1], cost: quantities[0][2], weight: quantities[0][3] } 
@@ -87,27 +93,43 @@ def quantity_phase
         message = "no existe un invetario de ese producto" if lot_phase.nil?
     end
 
-    if lot_phase.nil? 
-        render json: { message: message }     
-    else 
-        render json: lot_phase , each_serializer: PhaseQuantitiesSerializer
-    end
+    if lot_phase.nil? then render json: { message: message } else render json: lot_phase , each_serializer: PhaseQuantitiesSerializer end 
+
 end
 
 #pull_quantities
 def quantity_pull
 
     begin  
-        lot_phase = Lot.joins(:product_treatment_phases).where(product_treatment_phases: { phase_id: 1 }).distinct
-        render json: lot_phase , each_serializer: PullQuantitiesSerializer
+        phase_id = params[:phase_id] 
+        products = Product.distinct
+        phases = []
+        product_id = []
+        product = []
+        products.each do |p|
+
+            phase = ProductTreatmentPhase.joins(:lot).where("phase_id = ? and product_id in ( ? )",phase_id,p.id).distinct.last
+            pro = products.where(id: p.id).last
+    
+            if product.include?(pro.id) || product.include?(pro.product_id)
+                phases 
+            else 
+                unless phase.nil?
+                    phases << phase 
+                    product << phase.product_id
+                end
+            end 
+        end
+        render json: phases , each_serializer: PullQuantitiesSerializer
     rescue  
-        render json: { message: "no existe un inventario de esa face" }    
+        render json: { message: "No existe un inventario en la Phase" }    
     end  
-   
+    
 end
 
 
   private
+
     # Use callbacks to share common setup or constraints between actions.
     def set_product
       @product = Product.find(params[:id])
@@ -125,5 +147,6 @@ end
     def quantity_phase_lot_params
       { id:params[:phase_id] , product_id:params[:product_id] }
     end
+    
 end
 

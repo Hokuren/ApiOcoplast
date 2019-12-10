@@ -51,11 +51,9 @@
             render json: quantity, status: :created, location: quantity
         else
             render json: quantity.errors, status: :unprocessable_entity
-        end
-        
+        end  
     end # --->>> Colsed Transaction    
   end #--->>> Closed Method
-
 
   # PATCH/PUT /quantities/1
   def update
@@ -72,6 +70,7 @@
   end
 
   private
+
     # Use callbacks to share common setup or constraints between actions.
     def set_quantity
       @quantity = Quantity.find(params[:id])
@@ -81,4 +80,5 @@
     def quantity_params
       params.require(:quantity).permit(:cost, :weight, :product_id, :lot_id)
     end
+
 end

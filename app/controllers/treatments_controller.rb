@@ -39,6 +39,7 @@ class TreatmentsController < ApplicationController
   end
 
   private
+
     # Use callbacks to share common setup or constraints between actions.
     def set_treatment
       @treatment = Treatment.find(params[:id])
@@ -48,4 +49,5 @@ class TreatmentsController < ApplicationController
     def treatment_params
       params.require(:treatment).permit(:name)
     end
+    
 end
