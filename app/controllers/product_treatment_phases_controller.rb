@@ -17,7 +17,7 @@ class ProductTreatmentPhasesController < ApplicationController
   def create
     
     @product_treatment_phase = product_treatment_phase_params 
-
+                    
     phase_id_previous = params[:phase_id_previous]
 
     last_product_treatment_phase = ProductTreatmentPhase.last_by_product_per_phase(@product_treatment_phase[:product_id],phase_id_previous)

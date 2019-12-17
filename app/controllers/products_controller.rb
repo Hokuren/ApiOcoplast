@@ -81,19 +81,23 @@ def quantity_phase
         lot_phase = Lot.joins(:product_treatment_phases).where(product_treatment_phases: { phase_id: quantity_phase[:id] }).distinct   
         
         message = "no existe un inventario de esa face" if lot_phase.nil?
-            
+        
+        if lot_phase.nil? then render json: { message: message } else render json: lot_phase , each_serializer: ProductPhaseQuantitiesSerializer end 
     elsif !quantity_phase[:id].nil? and !quantity_phase[:product_id].nil?
         lot_phase = Lot.joins(:product_treatment_phases, :quantities).where( product_treatment_phases: { phase_id: quantity_phase[:id] } , quantities:{ product_id: quantity_phase[:product_id] }).last
     
         message = "no existe un invetario de ese producto en la fase" if lot_phase.nil?
-    
+
+        if lot_phase.nil? then render json: { message: message } else render json: lot_phase , serializer: ProductPhaseQuantitiesSerializer end 
     elsif quantity_phase[:id].nil? and !quantity_phase[:product_id].nil?
-        lot_phase = Lot.joins(:product_treatment_phases).where(product_treatment_phases: { product_id: quantity_phase[:product_id] }).distinct
+        lot_phase = Lot.joins(:product_treatment_phases).where(product_treatment_phases: { product_id: quantity_phase[:product_id] }).distinct.last
         
         message = "no existe un invetario de ese producto" if lot_phase.nil?
+
+        if lot_phase.nil? then render json: { message: message } else render json: lot_phase , serializer: ProductPhaseQuantitiesSerializer end 
     end
 
-    if lot_phase.nil? then render json: { message: message } else render json: lot_phase , each_serializer: PhaseQuantitiesSerializer end 
+    
 
 end
 
