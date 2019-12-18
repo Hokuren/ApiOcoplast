@@ -82,19 +82,38 @@ def quantity_phase
         
         message = "no existe un inventario de esa face" if lot_phase.nil?
         
-        if lot_phase.nil? then render json: { message: message } else render json: lot_phase , each_serializer: ProductPhaseQuantitiesSerializer end 
+        if lot_phase.nil? then render json: { message: message } else render json: lot_phase,Variable_phase_id: quantity_phase[:id], each_serializer: ProductPhaseQuantitiesSerializer end 
+          
     elsif !quantity_phase[:id].nil? and !quantity_phase[:product_id].nil?
         lot_phase = Lot.joins(:product_treatment_phases, :quantities).where( product_treatment_phases: { phase_id: quantity_phase[:id] } , quantities:{ product_id: quantity_phase[:product_id] }).last
     
         message = "no existe un invetario de ese producto en la fase" if lot_phase.nil?
 
-        if lot_phase.nil? then render json: { message: message } else render json: lot_phase , serializer: ProductPhaseQuantitiesSerializer end 
+        if lot_phase.nil? then render json: { message: message } else render json: lot_phase ,Variable_phase_id: quantity_phase[:id], serializer: ProductPhaseQuantitiesSerializer end 
+
     elsif quantity_phase[:id].nil? and !quantity_phase[:product_id].nil?
         lot_phase = Lot.joins(:product_treatment_phases).where(product_treatment_phases: { product_id: quantity_phase[:product_id] }).distinct.last
         
         message = "no existe un invetario de ese producto" if lot_phase.nil?
 
         if lot_phase.nil? then render json: { message: message } else render json: lot_phase , serializer: ProductPhaseQuantitiesSerializer end 
+
+    elsif quantity_phase[:id].nil? and quantity_phase[:product_id].nil?
+        lot_phases = Lot.joins(:product_treatment_phases).distinct
+        products = []
+        lots = []
+        lot_phases.each do |lot|
+          product_treatment_phase = ProductTreatmentPhase.joins(:lot).where(lot_id: lot.id).last
+          unless (products.include?(product_treatment_phase.product_id))
+            lots.push(product_treatment_phase.lot_id)
+          end
+          products.push(product_treatment_phase.product_id)
+        end 
+        lot_phase = Lot.where("id in ( ? )",lots)
+        message = "No existe un inventario" if lot_phase.nil?
+
+        if lot_phase.nil? then render json: { message: message } else render json: lot_phase , each_serializer: ProductPhaseQuantitiesSerializer end 
+
     end
 
     

@@ -70,6 +70,7 @@ ActiveRecord::Schema.define(version: 2019_11_11_072729) do
     t.decimal "cost"
     t.decimal "weight"
     t.decimal "weight_initial"
+    t.datetime "date"
     t.integer "product_id", null: false
     t.integer "lot_id", null: false
     t.datetime "created_at", precision: 6, null: false

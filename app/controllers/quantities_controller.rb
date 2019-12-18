@@ -78,7 +78,7 @@
 
     # Only allow a trusted parameter "white list" through.
     def quantity_params
-      params.require(:quantity).permit(:cost, :weight, :product_id, :lot_id)
+      params.require(:quantity).permit(:cost, :weight, :date, :product_id, :lot_id)
     end
 
 end
