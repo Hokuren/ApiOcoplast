@@ -19,7 +19,7 @@ def products
     end
   end 
 	return {
-    product_id: product.product_id,
+    product_id: product.id,
     product_name: product.name,	
     phases: product_phases
   }  
