@@ -42,8 +42,9 @@ class ProductTreatmentPhasesController < ApplicationController
                         treatment = Treatment.create(name: product_treatment[:treatment_new_name] )
                     end
                     product_treatment[:treatment_id] = treatment.id
-                    cost_treatments = cost_treatments + product_treatment[:cost]
+                    #cost_treatments = cost_treatments + product_treatment[:cost]
                 end 
+                cost_treatments = cost_treatments + product_treatment[:cost]
             end
 
             product_treatment_phase_new = ProductTreatmentPhase.new(
