@@ -12,12 +12,15 @@ def products
     phase = ProductTreatmentPhase.where(lot_id: lot.id).last.phase
     if( !variable_phase_id.blank? || !variable_phase_id.nil? )
       if (variable_phase_id === phase.id)
-        product_phases.push(phase_id: phase.id,phase_name: phase.name,cost: lot.cost,weight: lot.weight)
+          product_phases.push(phase_id: phase.id,phase_name: phase.name,cost: lot.cost,weight: lot.weight)
       end 
     else 
-      product_phases.push(phase_id: phase.id,phase_name: phase.name,cost: lot.cost,weight: lot.weight)
+        product_phases.push(phase_id: phase.id,phase_name: phase.name,cost: lot.cost,weight: lot.weight)
     end
+  
+
   end 
+
 	return {
     product_id: product.id,
     product_name: product.name,	

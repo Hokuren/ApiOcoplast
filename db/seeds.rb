@@ -12,9 +12,10 @@ Product.create(name: 'Tapas de Gaseosa',cost: 0,weight: 0,product_id: 2)
 Product.create(name: 'Pasta',cost: 0,weight: 0,product_id: 3)
 Product.create(name: 'Canasta',cost: 0,weight: 0,product_id: 4)
 
-Product.create(name: 'Rimax-Pasta',cost: 0,weight: 0,product_id: 1) # 5
-Product.create(name: 'Tapas de Gaseosa-Pasta',cost: 0,weight: 0,product_id: 2) # 6
-Product.create(name: 'Canasta-Pasta',cost: 0,weight: 0,product_id: 4) # 7
+
+Product.create(name: 'Rimax-Pasta',cost: 0,weight: 0,product_id: 1) 
+Product.create(name: 'Tapas de Gaseosa-Pasta',cost: 0,weight: 0,product_id: 2) 
+Product.create(name: 'Canasta-Pasta',cost: 0,weight: 0,product_id: 4) 
 
 Treatment.create(name: 'Molido 1')
 Treatment.create(name: 'Molido 2')
@@ -23,4 +24,5 @@ Treatment.create(name: 'Molido 3')
 Phase.create(name: 'Inventario en Bruto')
 Phase.create(name: 'Fase 1')
 Phase.create(name: 'Fase 2')
-Phase.create(name: 'Fase 3')            
+Phase.create(name: 'Fase 3') 
+Phase.create(name: 'Pool')           

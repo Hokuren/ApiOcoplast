@@ -102,6 +102,40 @@ class ProductTreatmentPhasesController < ApplicationController
 
             #Guardar Fase 
             if product_treatment_phase_new.save 
+                if product_treatment_phase_new.phase_id == 4 
+                     
+                    product_treatment_phase_new_pool = ProductTreatmentPhase.new(
+                        cost: product_treatment_phase_new[:cost], 
+                        weight: product_treatment_phase_new[:weight], 
+                        phase_id: product_treatment_phase_new[:phase_id],
+                        product_id: product_treatment_phase_new[:product_id],
+                        product_treatment_phase_id: nil    
+                    )       
+                    
+                    product_treatment_phase_new_pool.id = nil
+                    product = Product.where("product_id = ? or id = ? ",product_treatment_phase_new_pool.product_id,product_treatment_phase_new_pool.product_id).uniq
+                    products_product_id = product.map{ |product| product.product_id }
+                    products_id = product.map{ |product| product.id }
+                    products = ( products_product_id + products_id ) 
+                    lot_pool =  Lot.joins(:product_treatment_phases).where("product_id in ( ? ) and phase_id = 5 ",products)
+                    product_treatment_phase_new_pool.product_treatment_phase_id = product_treatment_phase_new_pool.id
+                    product_treatment_phase_new_pool.phase_id = 5
+                    if lot_pool.nil? || lot_pool.empty?
+                        lot_new = Lot.new(cost: product_treatment_phase_new_pool.cost, weight: product_treatment_phase_new_pool.weight)
+                        if lot_new.save 
+                            product_treatment_phase_new_pool.lot_id = lot_new.id
+                            product_treatment_phase_new_pool.save  
+                        end
+                    else
+                        lot_pool = lot_pool.last
+                        product_treatment_phase_new_pool.lot_id = lot_pool.id
+                        cost_previous_lot_pool = (lot_pool.cost * lot_pool.weight) 
+                        cost_new_lot_pool = ( product_treatment_phase_new_pool.cost * product_treatment_phase_new_pool.weight )   
+                        lot_pool.cost = ( cost_previous_lot_pool + cost_new_lot_pool ) / ( lot_pool.weight + product_treatment_phase_new_pool.weight )
+                        lot_pool.update(weight: lot_pool.weight + product_treatment_phase_new_pool.weight,cost: lot_pool.cost )  
+                        product_treatment_phase_new_pool.save  
+                    end   
+                end 
                 render json: product_treatment_phase_new, status: :created, location: product_treatment_phase_new
             else
                 render json: product_treatment_phase_new.errors, status: :unprocessable_entity
@@ -181,8 +215,48 @@ def classification
                                 new_weight_classification = lot_previous_classification.weight + classification[:weight]
                                 lot_previous_classification.update(cost: new_cost_classification, weight: new_weight_classification)
                             end 
-                            ProductTreatmentPhase.create(cost: cost_kilo, weight: classification[:weight], phase_id: classification[:phase_id], product_treatment_phase_id: product_treatment_phase.id, lot_id: lot_previous_classification.id, product_id: classification[:product_id])
+                            product_treatment_phase_new = ProductTreatmentPhase.new(cost: cost_kilo, weight: classification[:weight], phase_id: classification[:phase_id], product_treatment_phase_id: product_treatment_phase.id, lot_id: lot_previous_classification.id, product_id: classification[:product_id])
                             Quantity.create(cost: (cost_kilo * classification[:weight]), weight: classification[:weight], weight_initial: classification[:weight], product_id: classification[:product_id], lot_id: lot_previous_classification.id)     
+
+                            ### pool
+                            if product_treatment_phase_new.save
+                                if product_treatment_phase_new.phase_id == 4 
+                        
+                                    product_treatment_phase_new_pool = ProductTreatmentPhase.new(
+                                        cost: product_treatment_phase_new[:cost], 
+                                        weight: product_treatment_phase_new[:weight], 
+                                        phase_id: product_treatment_phase_new[:phase_id],
+                                        product_id: product_treatment_phase_new[:product_id],
+                                        product_treatment_phase_id: nil    
+                                    )       
+                                    
+                                    product_treatment_phase_new_pool.id = nil
+                                    product = Product.where("product_id = ? or id = ? ",product_treatment_phase_new_pool.product_id,product_treatment_phase_new_pool.product_id).uniq
+                                    products_product_id = product.map{ |product| product.product_id }
+                                    products_id = product.map{ |product| product.id }
+                                    products = ( products_product_id + products_id ) 
+                                    lot_pool =  Lot.joins(:product_treatment_phases).where("product_id in ( ? ) and phase_id = 5 ",products)
+                                    product_treatment_phase_new_pool.product_treatment_phase_id = product_treatment_phase_new_pool.id
+                                    product_treatment_phase_new_pool.phase_id = 5
+                                    if lot_pool.nil? || lot_pool.empty?
+                                        lot_new = Lot.new(cost: product_treatment_phase_new_pool.cost, weight: product_treatment_phase_new_pool.weight)
+                                        if lot_new.save 
+                                            product_treatment_phase_new_pool.lot_id = lot_new.id
+                                            product_treatment_phase_new_pool.save  
+                                        end
+                                    else
+                                        lot_pool = lot_pool.last
+                                        product_treatment_phase_new_pool.lot_id = lot_pool.id
+                                        cost_previous_lot_pool = (lot_pool.cost * lot_pool.weight) 
+                                        cost_new_lot_pool = ( product_treatment_phase_new_pool.cost * product_treatment_phase_new_pool.weight )   
+                                        lot_pool.cost = ( cost_previous_lot_pool + cost_new_lot_pool ) / ( lot_pool.weight + product_treatment_phase_new_pool.weight )
+                                        lot_pool.update(weight: lot_pool.weight + product_treatment_phase_new_pool.weight,cost: lot_pool.cost )  
+                                        product_treatment_phase_new_pool.save  
+                                    end   
+                                end 
+                            end
+                            ### closed pool
+
                         end
                         render json: product_treatment_phase , each_serializer: ProductTreatmentPhaseClassificationSerializer 
                     end #--->>> closed unless
