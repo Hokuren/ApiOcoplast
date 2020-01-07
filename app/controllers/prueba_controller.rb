@@ -142,8 +142,7 @@ class ProductTreatmentPhasesController < ApplicationController
 end #--- >>> Closed method
 
 
-class PruebaController < ActionController::API
-end
+
 
 
 
@@ -295,4 +294,7 @@ end
       )
     end
 
+end
+
+class PruebaController < ActionController::API
 end
