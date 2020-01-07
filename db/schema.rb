@@ -12,6 +12,9 @@
 
 ActiveRecord::Schema.define(version: 2019_11_11_072729) do
 
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "plpgsql"
+
   create_table "lots", force: :cascade do |t|
     t.decimal "cost"
     t.decimal "weight"
@@ -30,10 +33,10 @@ ActiveRecord::Schema.define(version: 2019_11_11_072729) do
   create_table "product_treatment_phases", force: :cascade do |t|
     t.decimal "cost"
     t.decimal "weight"
-    t.integer "phase_id", null: false
-    t.integer "product_treatment_phase_id"
-    t.integer "lot_id"
-    t.integer "product_id"
+    t.bigint "phase_id", null: false
+    t.bigint "product_treatment_phase_id"
+    t.bigint "lot_id"
+    t.bigint "product_id"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["lot_id"], name: "index_product_treatment_phases_on_lot_id"
@@ -46,9 +49,9 @@ ActiveRecord::Schema.define(version: 2019_11_11_072729) do
     t.decimal "cost"
     t.decimal "weight"
     t.decimal "waste"
-    t.integer "treatment_id", null: false
-    t.integer "product_treatment_phase_id", null: false
-    t.integer "product_treatment_id"
+    t.bigint "treatment_id", null: false
+    t.bigint "product_treatment_phase_id", null: false
+    t.bigint "product_treatment_id"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["product_treatment_id"], name: "index_product_treatments_on_product_treatment_id"
@@ -60,7 +63,7 @@ ActiveRecord::Schema.define(version: 2019_11_11_072729) do
     t.string "name"
     t.decimal "cost"
     t.decimal "weight"
-    t.integer "product_id"
+    t.bigint "product_id"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["product_id"], name: "index_products_on_product_id"
@@ -71,8 +74,8 @@ ActiveRecord::Schema.define(version: 2019_11_11_072729) do
     t.decimal "weight"
     t.decimal "weight_initial"
     t.datetime "date"
-    t.integer "product_id", null: false
-    t.integer "lot_id", null: false
+    t.bigint "product_id", null: false
+    t.bigint "lot_id", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["lot_id"], name: "index_quantities_on_lot_id"
