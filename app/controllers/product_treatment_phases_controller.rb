@@ -102,6 +102,8 @@ class ProductTreatmentPhasesController < ApplicationController
 
             #Guardar Fase 
             if product_treatment_phase_new.save 
+                
+                ### pool
                 if product_treatment_phase_new.phase_id == 4 
                      
                     product_treatment_phase_new_pool = ProductTreatmentPhase.new(

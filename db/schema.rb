@@ -49,6 +49,7 @@ ActiveRecord::Schema.define(version: 2019_11_11_072729) do
     t.decimal "cost"
     t.decimal "weight"
     t.decimal "waste"
+    t.decimal "digits_quantity"
     t.bigint "treatment_id", null: false
     t.bigint "product_treatment_phase_id", null: false
     t.bigint "product_treatment_id"

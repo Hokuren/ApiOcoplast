@@ -17,13 +17,13 @@
   # POST /quantities
   def create 
 
-	Quantity.transaction do
-		
+  Quantity.transaction do
+    
         quantity = Quantity.new(quantity_params)
         quantity.weight_initial = quantity.weight
-		
+
 		return render json: { message: "El producto seleccionado no existe" } if Product.find_by(id: quantity.product_id).nil? 
-                  
+            
         producttreatmentphase = ProductTreatmentPhase.new(cost: 0, weight: 0, lot_id: nil)
         producttreatmentphase.phase_id = 1
         producttreatmentphase.product_id = quantity.product_id
@@ -40,10 +40,10 @@
                 producttreatmentphase.save
             end 
         else 
-            lot_new_cost = (  ( (lot.cost * lot.weight) + (quantity.cost)  )/ ( lot.weight + quantity.weight )  )              
+            lot_new_cost = (  ( (lot.cost * lot.weight) + (quantity.cost)  )/ ( lot.weight + quantity.weight )  )          
             lot_new_weight = ( lot.weight + quantity.weight )
             lot.update( cost: lot_new_cost, weight: lot_new_weight )
-            lot.product_treatment_phases.where("product_treatment_phase_id is null or phase_id == 1" ).last.update( cost: lot_new_cost, weight: lot_new_weight )	
+            lot.product_treatment_phases.where("product_treatment_phase_id is null or phase_id = 1" ).last.update( cost: lot_new_cost, weight: lot_new_weight )	
             quantity.lot_id = lot.id
         end 
         
