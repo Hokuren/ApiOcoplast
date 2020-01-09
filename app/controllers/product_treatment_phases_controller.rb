@@ -317,7 +317,7 @@ end #--- >>> Closed method
         :phase_id, 
         :product_id,
         :product_treatment_phase_id,
-        product_treatments_attributes: [ :cost, :weight, :waste, :treatment_id, :treatment_new_name ]
+        product_treatments_attributes: [ :cost, :weight, :waste, :treatment_id, :treatment_new_name, :minimal_cost, :maximum_cost ]
       )
     end
 

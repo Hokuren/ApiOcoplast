@@ -4,7 +4,8 @@ class CreateProductTreatments < ActiveRecord::Migration[6.0]
       t.numeric :cost
       t.numeric :weight
       t.numeric :waste
-      t.numeric :digits_quantity
+      t.numeric :minimal_cost
+      t.numeric :maximum_cost
       t.references :treatment, null: false, foreign_key: true
       t.references :product_treatment_phase, null: false, foreign_key: true
       t.references :product_treatment, null: true, foreign_key: true

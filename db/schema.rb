@@ -49,7 +49,8 @@ ActiveRecord::Schema.define(version: 2019_11_11_072729) do
     t.decimal "cost"
     t.decimal "weight"
     t.decimal "waste"
-    t.decimal "digits_quantity"
+    t.decimal "minimal_cost"
+    t.decimal "maximum_cost"
     t.bigint "treatment_id", null: false
     t.bigint "product_treatment_phase_id", null: false
     t.bigint "product_treatment_id"
@@ -85,6 +86,8 @@ ActiveRecord::Schema.define(version: 2019_11_11_072729) do
 
   create_table "treatments", force: :cascade do |t|
     t.string "name"
+    t.decimal "minimal_cost"
+    t.decimal "maximum_cost"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
   end

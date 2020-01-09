@@ -17,9 +17,9 @@ Product.create(name: 'Rimax-Pasta',cost: 0,weight: 0,product_id: 1)
 Product.create(name: 'Tapas de Gaseosa-Pasta',cost: 0,weight: 0,product_id: 2) 
 Product.create(name: 'Canasta-Pasta',cost: 0,weight: 0,product_id: 4) 
 
-Treatment.create(name: 'Molido 1')
-Treatment.create(name: 'Molido 2')
-Treatment.create(name: 'Molido 3')
+Treatment.create(name: 'Molido 1', minimal_cost: 0, maximum_cost: 1000)
+Treatment.create(name: 'Molido 2', minimal_cost: 0, maximum_cost: 2000)
+Treatment.create(name: 'Molido 3', minimal_cost: 0, maximum_cost: 3000)
 
 Phase.create(name: 'Inventario en Bruto')
 Phase.create(name: 'Fase 1')
