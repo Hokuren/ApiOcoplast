@@ -149,13 +149,14 @@ class ProductTreatmentPhasesController < ApplicationController
 end #--- >>> Closed method
 
 
-
+# name_treatments
+# cost_treatments
 # POST /classification_product_treatment_phase_params
 def classification
 
     classification = classification_product_treatment_phase_params
     weight_products = classification[:classification].pluck(:weight).reduce(:+)
-    inventary_initial = classification[:weight] 
+    inventary_initial = classification[:weight]
     inventary = classification[:weight] 
 
     ProductTreatmentPhase.transaction do 
@@ -171,11 +172,14 @@ def classification
         end 
 
         classification[:weight] ||= 0
-        
+
         if inventary_initial <= inventary
             if weight_products <= inventary_initial 
 
-                cost_kilo = ( classification[:cost] + classification[:cost_treatments] ) / classification[:weight]
+                cost_treatments = classification[:treatments].pluck(:cost_treatment).reduce(:+)
+                ### cost_kilo = ( classification[:cost] + classification[:cost_treatments] ) / classification[:weight]
+               
+                cost_kilo = ( classification[:cost] + cost_treatments ) / classification[:weight]   
 
                 product_treatment_phase = ProductTreatmentPhase.new(
                 cost: cost_kilo,
@@ -202,11 +206,21 @@ def classification
                 Quantity.create(cost: (cost_kilo * product_treatment_phase.weight), weight: product_treatment_phase.weight, weight_initial: classification[:weight], product_id: product_treatment_phase.product_id, lot_id: lot_previous.id) if classification[:weight_inventary].nil?   
                 
                 if product_treatment_phase.save
-                    treatment = Treatment.where("name LIKE ?","%#{classification[:name_treatments]}%").last
-                    if treatment.nil? or treatment == []
-                        treatment = Treatment.create(name: classification[:name_treatments])
-                    end
-                    ProductTreatment.create( cost: classification[:cost_treatments], weight: classification[:weight],treatment_id: treatment.id , product_treatment_phase_id: product_treatment_phase.id )
+                
+                    classification[:treatments].each do |treat|
+                        if treat[:treatment_id].nil?  
+                            treatment = Treatment.where("name LIKE ?","%#{treat[:name_treatment]}%").last
+                            if treatment.nil? or treatment == []
+                                treatment = Treatment.create(name: treat[:name_treatment])
+                            end
+                        else
+                            treatment = Treatment.find_by(id: treat[:treatment_id])           
+                        end
+
+                        ### ProductTreatment.create( cost: classification[:cost_treatments], weight: classification[:weight],treatment_id: treatment.id , product_treatment_phase_id: product_treatment_phase.id )
+                        ProductTreatment.create( cost: treat[:cost_treatment], weight: classification[:weight],treatment_id: treatment.id , product_treatment_phase_id: product_treatment_phase.id )
+                    end  
+
                     unless classification[:classification].nil? 
                         classification[:classification].each do |classification|
                             lot_previous_classification = Lot.joins(:product_treatment_phases).where(product_treatment_phases: { product_id: classification[:product_id], phase_id: classification[:phase_id] }).last
@@ -326,13 +340,27 @@ end #--- >>> Closed method
        weight_inventary: params[:weight_inventary],
        weight: params[:weight],
        cost: params[:cost],
-       cost_treatments: params[:cost_treatments],
-       name_treatments: params[:name_treatments],
+       treatments: params[:treatments],
        phase_id: params[:phase_id],
        product_id: params[:product_id],
        product_treatment_phase_id: params[:product_treatment_phase_id],
        classification: params[:classification]
     }
-    end
+    end 
+
+
+    # def classification_product_treatment_phase_params
+    #     { 
+    #       weight_inventary: params[:weight_inventary],
+    #       weight: params[:weight],
+    #       cost: params[:cost],
+    #       cost_treatments: params[:cost_treatments],
+    #       name_treatments: params[:name_treatments],
+    #       phase_id: params[:phase_id],
+    #       product_id: params[:product_id],
+    #       product_treatment_phase_id: params[:product_treatment_phase_id],
+    #       classification: params[:classification]
+    #     }
+    # end
 
 end
