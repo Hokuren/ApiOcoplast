@@ -33,6 +33,19 @@ module ApiOcoplast
     # Middleware like session, flash, cookies can be added back manually.
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
+
+    ###
+    config.time_zone = 'Bogota'
+    config.active_record.default_timezone = :local
+
+
+    config.middleware.insert_before 0, Rack::Cors do
+      allow do
+        origins '*'
+        resource '*', headers: :any, methods: [:get, :post, :options, :delete, :patch, :put], expose: ['tag','meta']
+      end
+    end
+
   end
 end
 
