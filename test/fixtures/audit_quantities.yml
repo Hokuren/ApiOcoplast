@@ -1,0 +1,19 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  cost: 1
+  weight: 1
+  weight_initial: 1
+  date: 2020-01-13 11:04:59
+  product: one
+  lot: one
+  quantity: one
+
+two:
+  cost: 1
+  weight: 1
+  weight_initial: 1
+  date: 2020-01-13 11:04:59
+  product: two
+  lot: two
+  quantity: two
