@@ -57,10 +57,11 @@
 
   # PATCH/PUT /quantities/1
   def update
-    if @quantity.update(quantity_params)
-      render json: @quantity
+    if quantity.update(quantity_params)
+      
+      render json: quantity
     else
-      render json: @quantity.errors, status: :unprocessable_entity
+      render json: quantity.errors, status: :unprocessable_entity
     end
   end
 

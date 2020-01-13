@@ -16,137 +16,210 @@ class ProductTreatmentPhasesController < ApplicationController
   # POST /product_treatment_phases
   def create
     
+    puts '--->>> entando al create <<<---'
     @product_treatment_phase = product_treatment_phase_params 
-                    
+    puts '--->>> 1 <<<---'                
     phase_id_previous = params[:phase_id_previous]
-
+    puts '--->>> 2 <<<---'   
     last_product_treatment_phase = ProductTreatmentPhase.last_by_product_per_phase(@product_treatment_phase[:product_id],phase_id_previous)
-
+    puts '--->>> 3 <<<---'
     @product_treatment_phase[:product_treatment_phase_id] = last_product_treatment_phase.nil? ? nil : last_product_treatment_phase.id
-
+    puts '--->>> 4 <<<---'
     inventary = Lot.by_product_treatment_phase(@product_treatment_phase[:product_treatment_phase_id])
-
+    puts '--->>> 5 <<<---'
     if @product_treatment_phase[:weight] <= inventary.weight
-        
+        puts '--->>> 6 <<<---'
         treatments = Treatment.all
-
+        puts '--->>> 7 <<<---'
         cost_treatments = 0
-    
+        puts '--->>> 8 <<<---'
         ProductTreatmentPhase.transaction do 
-
+            puts '--->>> 9 <<<---'
             @product_treatment_phase[:product_treatments_attributes].each do |product_treatment|
-        
+                puts '--->>> 10 <<<---'
                 if product_treatment[:treatment_id].nil? 
+                    puts '--->>> 11 <<<---'
                     treatment = treatments.select{ |element| element.name==product_treatment[:treatment_new_name]}.last
+                    puts '--->>> 12 <<<---'
                     if treatment.nil?
+                        puts '--->>> 13 <<<---'
                         treatment = Treatment.create(name: product_treatment[:treatment_new_name] )
+                        puts '--->>> 14 <<<---'
                     end
+                    puts '--->>> 15 <<<---'
                     product_treatment[:treatment_id] = treatment.id
+                    puts '--->>> 16 <<<---'
                     #cost_treatments = cost_treatments + product_treatment[:cost]
                 end 
+                puts '--->>> 17 <<<---'
                 cost_treatments = cost_treatments + product_treatment[:cost]
+                puts '--->>> 18 <<<---'
             end
 
+            puts '--->>> 19 <<<---'
             product_treatment_phase_new = ProductTreatmentPhase.new(
                 weight: @product_treatment_phase[:weight], 
                 phase_id: @product_treatment_phase[:phase_id],
                 product_id: @product_treatment_phase[:product_id],
                 product_treatment_phase_id: @product_treatment_phase[:product_treatment_phase_id] || nil,
                 product_treatments_attributes: @product_treatment_phase[:product_treatments_attributes].map{ |phase| { "cost" => phase[:cost], "treatment_id" => phase[:treatment_id] } }
-            )       
+            )   
+            puts '--->>> 20 <<<---'    
 
             product_treatment_phase_new.cost = 0 
+            puts '--->>> 21 <<<---'   
 
             #validamos que tenga una face anterior 
             if !product_treatment_phase_new.product_treatment_phase_id.nil? 
+                puts '--->>> 22 <<<---'   
      
                 lot = ProductTreatmentPhase.find(product_treatment_phase_new.product_treatment_phase_id).lot
-    
-                cost_phase_previous = lot.cost
-                weight_phase_previous = lot.weight
-            
-                if product_treatment_phase_new.weight <= weight_phase_previous
-    
-                    product_treatment_phases = lot.product_treatment_phases.order(created_at: :asc).where("weight > 0")
-    
-                    cost_phase_previous_with_treatments = ((( cost_phase_previous * product_treatment_phase_new.weight) + cost_treatments) / product_treatment_phase_new.weight )
-                    weight_phase_previous = weight_phase_previous - product_treatment_phase_new.weight
-
-                    new_cost = cost_phase_previous_with_treatments
-                    new_weight = weight_phase_previous
-                    product_treatment_phase_new.cost = new_cost
-    
-                    lot.update(weight: weight_phase_previous)
                 
+                puts '--->>> 23 <<<---'  
+
+                cost_phase_previous = lot.cost
+                puts '--->>> 24 <<<---' 
+                weight_phase_previous = lot.weight
+                puts '--->>> 25 <<<---' 
+
+                if product_treatment_phase_new.weight <= weight_phase_previous
+                    puts '--->>> 26 <<<---' 
+
+                    product_treatment_phases = lot.product_treatment_phases.order(created_at: :asc).where("weight > 0")
+                    puts '--->>> 27 <<<---' 
+
+                    cost_phase_previous_with_treatments = ((( cost_phase_previous * product_treatment_phase_new.weight) + cost_treatments) / product_treatment_phase_new.weight )
+                    puts '--->>> 28 <<<---' 
+                    weight_phase_previous = weight_phase_previous - product_treatment_phase_new.weight
+                    puts '--->>> 29 <<<---' 
+                    new_cost = cost_phase_previous_with_treatments
+                    puts '--->>> 30 <<<---' 
+                    new_weight = weight_phase_previous
+                    puts '--->>> 31 <<<---' 
+                    product_treatment_phase_new.cost = new_cost
+                    puts '--->>> 32 <<<---' 
+                    lot.update(weight: weight_phase_previous)
+                    puts '--->>> 33 <<<---'
                     begin 
+                        puts '--->>> 34 <<<---'
                         lot_phase_previous = ProductTreatmentPhase.find_by(id: product_treatment_phase_new.product_treatment_phase_id).product_treatment_phases.where("phase_id = ? and lot_id is not null",product_treatment_phase_new.phase_id).last.lot || nil
+                        puts '--->>> 35 <<<---'
                     rescue
+                        puts '--->>> 36 <<<---'
                         lot_phase_previous = nil 
+                        puts '--->>> 37 <<<---'
                     end 
+                    puts '--->>> 38 <<<---'
 
                     if lot_phase_previous.nil?
+                        puts '--->>> 39 <<<---'
                         lot_new = Lot.create(cost: new_cost, weight: product_treatment_phase_new.weight, waste: 0.0, available: 0.0)
+                        puts '--->>> 40 <<<---'
                         product_treatment_phase_new.lot_id = lot_new.id
+                        puts '--->>> 41 <<<---'
                     else
+                        puts '--->>> 42 <<<---'
                         product_treatment_phase_new.lot_id = lot_phase_previous.id
+                        puts '--->>> 43 <<<---'
                         cost_previous_lot = (lot_phase_previous.cost * lot_phase_previous.weight) 
-                        cost_new_lot = ( product_treatment_phase_new.cost * product_treatment_phase_new.weight )   
+                        puts '--->>> 44 <<<---'
+                        cost_new_lot = ( product_treatment_phase_new.cost * product_treatment_phase_new.weight )  
+                        puts '--->>> 45 <<<---' 
                         lot_phase_previous.cost = ( cost_previous_lot + cost_new_lot ) / ( lot_phase_previous.weight + product_treatment_phase_new.weight )
+                        puts '--->>> 46 <<<---' 
                         lot_phase_previous.cost
+                        puts '--->>> 47 <<<---'
                         Lot.find_by(id: lot_phase_previous.id).update(weight: lot_phase_previous.weight + product_treatment_phase_new.weight,cost: lot_phase_previous.cost )
+                        puts '--->>> 48 <<<---'
                     end  
                 else  
+                    puts '--->>> 49 <<<---'
                     render json: { message: "El peso ingresado es mayor al del inventario" }
+                    puts '--->>> 50 <<<---'
                 end
             end
 
             #Guardar Fase 
+            puts '--->>> 51 <<<---'
             if product_treatment_phase_new.save 
-                
+                puts '--->>> 52 <<<---'
                 ### pool
                 if product_treatment_phase_new.phase_id == 4 
-                     
+                    puts '--->>> 53 <<<---'     
                     product_treatment_phase_new_pool = ProductTreatmentPhase.new(
                         cost: product_treatment_phase_new[:cost], 
                         weight: product_treatment_phase_new[:weight], 
                         phase_id: product_treatment_phase_new[:phase_id],
                         product_id: product_treatment_phase_new[:product_id],
                         product_treatment_phase_id: nil    
-                    )       
+                    )  
+                    puts '--->>> 54 <<<---'       
                     
                     product_treatment_phase_new_pool.id = nil
+                    puts '--->>> 55 <<<---'   
                     product = Product.where("product_id = ? or id = ? ",product_treatment_phase_new_pool.product_id,product_treatment_phase_new_pool.product_id).uniq
+                    puts '--->>> 56 <<<---'
                     products_product_id = product.map{ |product| product.product_id }
+                    puts '--->>> 57 <<<---'
                     products_id = product.map{ |product| product.id }
+                    puts '--->>> 58 <<<---'
                     products = ( products_product_id + products_id ) 
+                    puts '--->>> 59 <<<---'
                     lot_pool =  Lot.joins(:product_treatment_phases).where("product_id in ( ? ) and phase_id = 5 ",products)
+                    puts '--->>> 60 <<<---'
                     product_treatment_phase_new_pool.product_treatment_phase_id = product_treatment_phase_new_pool.id
+                    puts '--->>> 61 <<<---'
                     product_treatment_phase_new_pool.phase_id = 5
+                    puts '--->>> 62 <<<---'
                     if lot_pool.nil? || lot_pool.empty?
+                        puts '--->>> 63 <<<---'
                         lot_new = Lot.new(cost: product_treatment_phase_new_pool.cost, weight: product_treatment_phase_new_pool.weight)
+                        puts '--->>> 64 <<<---'
                         if lot_new.save 
+                            puts '--->>> 65 <<<---'
                             product_treatment_phase_new_pool.lot_id = lot_new.id
-                            product_treatment_phase_new_pool.save  
+                            puts '--->>> 66 <<<---'
+                            product_treatment_phase_new_pool.save
+                            puts '--->>> 67 <<<---'  
                         end
                     else
+                        puts '--->>> 68 <<<---'
                         lot_pool = lot_pool.last
+                        puts '--->>> 69 <<<---'
                         product_treatment_phase_new_pool.lot_id = lot_pool.id
+                        puts '--->>> 70 <<<---'
                         cost_previous_lot_pool = (lot_pool.cost * lot_pool.weight) 
+                        puts '--->>> 71 <<<---'
                         cost_new_lot_pool = ( product_treatment_phase_new_pool.cost * product_treatment_phase_new_pool.weight )   
+                        puts '--->>> 72 <<<---'
                         lot_pool.cost = ( cost_previous_lot_pool + cost_new_lot_pool ) / ( lot_pool.weight + product_treatment_phase_new_pool.weight )
-                        lot_pool.update(weight: lot_pool.weight + product_treatment_phase_new_pool.weight,cost: lot_pool.cost )  
+                        puts '--->>> 73 <<<---'
+                        lot_pool.update(weight: lot_pool.weight + product_treatment_phase_new_pool.weight,cost: lot_pool.cost ) 
+                        puts '--->>> 74 <<<---' 
                         product_treatment_phase_new_pool.save  
+                        puts '--->>> 75 <<<---'
                     end   
+                    puts '--->>> 76 <<<---'
                 end 
+                puts '--->>> 77 <<<---'
                 render json: product_treatment_phase_new, status: :created, location: product_treatment_phase_new
+                puts '--->>> 78 <<<---'
             else
+                puts '--->>> 79 <<<---'
                 render json: product_treatment_phase_new.errors, status: :unprocessable_entity
+                puts '--->>> 80 <<<---'
             end  
+            puts '--->>> 81 <<<---'
         end # --->>> closed transaction 
+        puts '--->>> 82 <<<---'
     else
+        puts '--->>> 83 <<<---'
         render json: { message: "No hay esa cantidad disponible en el inventario" }
+        puts '--->>> 84 <<<---'
     end #--->>>Closed invetary
+    puts '--->>> 85 <<<---'
 end #--- >>> Closed method
+
 
 
 # name_treatments
