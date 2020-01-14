@@ -16,8 +16,12 @@ class ProductTreatmentPhasesController < ApplicationController
   # POST /product_treatment_phases
   def create
     
+    ### ojo borrar 
+
+    
     Rails.logger.debug('--->>> entando al create <<<---')
     @product_treatment_phase = product_treatment_phase_params 
+
     Rails.logger.debug('--->>> 1 <<<---')              
     phase_id_previous = params[:phase_id_previous]
     Rails.logger.debug('--->>> 2 <<<---') 
@@ -397,6 +401,7 @@ end #--- >>> Closed method
 
     # Only allow a trusted parameter "white list" through.
     def product_treatment_phase_params
+        Rails.logger.debug('ENTRO product_treatment_phase_params() ' )
       params.require(:product_treatment_phase).permit(
         :cost ,
         :phase_id_previous,
@@ -406,6 +411,7 @@ end #--- >>> Closed method
         :product_treatment_phase_id,
         product_treatments_attributes: [ :cost, :weight, :waste, :treatment_id, :treatment_new_name, :minimal_cost, :maximum_cost ]
       )
+      Rails.logger.debug('ENTRO DESPUES DEL PARAMS product_treatment_phase_params() ' )
     end
 
     def classification_product_treatment_phase_params

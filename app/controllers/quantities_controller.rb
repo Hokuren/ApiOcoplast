@@ -58,11 +58,30 @@
   # PATCH/PUT /quantities/1
   def update
     binding.pry
-    @quantity
-    quantity_cost = @quantity.cost
+    last_cost = @quantity.cost
     binding.pry
-    quantity_weight = @quantity.weight
+    last_weight =  @quantity.weight
     binding.pry
+    cost_kilo = ( last_cost / last_weight )
+    binding.pry
+
+    binding.pry
+    lot = Lot.find_by(id: @quantity.lot_id)
+    binding.pry
+    cost_lot_total = (lot.weight * lot.cost)
+    binding.pry
+    cost_lot_total = (cost_lot_total - last_cost)
+    binding.pry 
+    lot.weight = ( lot.weight - last_weight )
+    binding.pry
+    cost_kilo_lot = ( cost_lot_total / lot.weight )
+    binding.pry
+    lot.cost = cost_kilo_lot 
+    binding.pry
+
+    old_cost_lot = ( lot.weight * lot.cost )
+    
+
     if @quantity.update(quantity_params)
       binding.pry
       render json: @quantity
