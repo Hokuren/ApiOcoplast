@@ -16,47 +16,47 @@ class ProductTreatmentPhasesController < ApplicationController
   # POST /product_treatment_phases
   def create
     
-    puts '--->>> entando al create <<<---'
+    Rails.logger.debug('--->>> entando al create <<<---')
     @product_treatment_phase = product_treatment_phase_params 
-    puts '--->>> 1 <<<---'                
+    Rails.logger.debug('--->>> 1 <<<---')              
     phase_id_previous = params[:phase_id_previous]
-    puts '--->>> 2 <<<---'   
+    Rails.logger.debug('--->>> 2 <<<---') 
     last_product_treatment_phase = ProductTreatmentPhase.last_by_product_per_phase(@product_treatment_phase[:product_id],phase_id_previous)
-    puts '--->>> 3 <<<---'
+    Rails.logger.debug('--->>> 3 <<<---') 
     @product_treatment_phase[:product_treatment_phase_id] = last_product_treatment_phase.nil? ? nil : last_product_treatment_phase.id
-    puts '--->>> 4 <<<---'
+    Rails.logger.debug('--->>> 4 <<<---') 
     inventary = Lot.by_product_treatment_phase(@product_treatment_phase[:product_treatment_phase_id])
-    puts '--->>> 5 <<<---'
+    Rails.logger.debug('--->>> 5 <<<---') 
     if @product_treatment_phase[:weight] <= inventary.weight
-        puts '--->>> 6 <<<---'
+        Rails.logger.debug('--->>> 6 <<<---') 
         treatments = Treatment.all
-        puts '--->>> 7 <<<---'
+        Rails.logger.debug('--->>> 7 <<<---') 
         cost_treatments = 0
-        puts '--->>> 8 <<<---'
+        Rails.logger.debug('--->>> 8 <<<---')
         ProductTreatmentPhase.transaction do 
-            puts '--->>> 9 <<<---'
+            Rails.logger.debug('--->>> 9 <<<---')
             @product_treatment_phase[:product_treatments_attributes].each do |product_treatment|
-                puts '--->>> 10 <<<---'
+                Rails.logger.debug('--->>> 10 <<<---')
                 if product_treatment[:treatment_id].nil? 
-                    puts '--->>> 11 <<<---'
+                    Rails.logger.debug('--->>> 11 <<<---')
                     treatment = treatments.select{ |element| element.name==product_treatment[:treatment_new_name]}.last
-                    puts '--->>> 12 <<<---'
+                    Rails.logger.debug('--->>> 12 <<<---')
                     if treatment.nil?
-                        puts '--->>> 13 <<<---'
+                        Rails.logger.debug('--->>> 13 <<<---')
                         treatment = Treatment.create(name: product_treatment[:treatment_new_name] )
-                        puts '--->>> 14 <<<---'
+                        Rails.logger.debug('--->>> 14 <<<---')
                     end
-                    puts '--->>> 15 <<<---'
+                    Rails.logger.debug('--->>> 15 <<<---')
                     product_treatment[:treatment_id] = treatment.id
-                    puts '--->>> 16 <<<---'
-                    #cost_treatments = cost_treatments + product_treatment[:cost]
+                    Rails.logger.debug('--->>> 16 <<<---')
+                    cost_treatments = cost_treatments + product_treatment[:cost]
                 end 
-                puts '--->>> 17 <<<---'
+                Rails.logger.debug('--->>> 17 <<<---')
                 cost_treatments = cost_treatments + product_treatment[:cost]
-                puts '--->>> 18 <<<---'
+                Rails.logger.debug('--->>> 18 <<<---')
             end
 
-            puts '--->>> 19 <<<---'
+            Rails.logger.debug('--->>> 19 <<<---')
             product_treatment_phase_new = ProductTreatmentPhase.new(
                 weight: @product_treatment_phase[:weight], 
                 phase_id: @product_treatment_phase[:phase_id],
@@ -64,88 +64,88 @@ class ProductTreatmentPhasesController < ApplicationController
                 product_treatment_phase_id: @product_treatment_phase[:product_treatment_phase_id] || nil,
                 product_treatments_attributes: @product_treatment_phase[:product_treatments_attributes].map{ |phase| { "cost" => phase[:cost], "treatment_id" => phase[:treatment_id] } }
             )   
-            puts '--->>> 20 <<<---'    
+            Rails.logger.debug('--->>> 20 <<<---')    
 
             product_treatment_phase_new.cost = 0 
-            puts '--->>> 21 <<<---'   
+            Rails.logger.debug('--->>> 21 <<<---')  
 
             #validamos que tenga una face anterior 
             if !product_treatment_phase_new.product_treatment_phase_id.nil? 
-                puts '--->>> 22 <<<---'   
+                Rails.logger.debug('--->>> 22 <<<---')  
      
                 lot = ProductTreatmentPhase.find(product_treatment_phase_new.product_treatment_phase_id).lot
                 
-                puts '--->>> 23 <<<---'  
+                Rails.logger.debug('--->>> 23 <<<---')  
 
                 cost_phase_previous = lot.cost
-                puts '--->>> 24 <<<---' 
+                Rails.logger.debug('--->>> 24 <<<---')
                 weight_phase_previous = lot.weight
-                puts '--->>> 25 <<<---' 
+                Rails.logger.debug('--->>> 25 <<<---') 
 
                 if product_treatment_phase_new.weight <= weight_phase_previous
-                    puts '--->>> 26 <<<---' 
+                    Rails.logger.debug('--->>> 26 <<<---') 
 
                     product_treatment_phases = lot.product_treatment_phases.order(created_at: :asc).where("weight > 0")
-                    puts '--->>> 27 <<<---' 
+                    Rails.logger.debug('--->>> 27 <<<---')
 
                     cost_phase_previous_with_treatments = ((( cost_phase_previous * product_treatment_phase_new.weight) + cost_treatments) / product_treatment_phase_new.weight )
-                    puts '--->>> 28 <<<---' 
+                    Rails.logger.debug('--->>> 28 <<<---')
                     weight_phase_previous = weight_phase_previous - product_treatment_phase_new.weight
-                    puts '--->>> 29 <<<---' 
+                    Rails.logger.debug('--->>> 29 <<<---') 
                     new_cost = cost_phase_previous_with_treatments
-                    puts '--->>> 30 <<<---' 
+                    Rails.logger.debug('--->>> 30 <<<---') 
                     new_weight = weight_phase_previous
-                    puts '--->>> 31 <<<---' 
+                    Rails.logger.debug('--->>> 31 <<<---')  
                     product_treatment_phase_new.cost = new_cost
-                    puts '--->>> 32 <<<---' 
+                    Rails.logger.debug('--->>> 32 <<<---')
                     lot.update(weight: weight_phase_previous)
-                    puts '--->>> 33 <<<---'
+                    Rails.logger.debug('--->>> 33 <<<---')
                     begin 
-                        puts '--->>> 34 <<<---'
+                        Rails.logger.debug('--->>> 34 <<<---')
                         lot_phase_previous = ProductTreatmentPhase.find_by(id: product_treatment_phase_new.product_treatment_phase_id).product_treatment_phases.where("phase_id = ? and lot_id is not null",product_treatment_phase_new.phase_id).last.lot || nil
-                        puts '--->>> 35 <<<---'
+                        Rails.logger.debug('--->>> 35 <<<---')
                     rescue
-                        puts '--->>> 36 <<<---'
+                        Rails.logger.debug('--->>> 36 <<<---')
                         lot_phase_previous = nil 
-                        puts '--->>> 37 <<<---'
+                        Rails.logger.debug('--->>> 37 <<<---')
                     end 
-                    puts '--->>> 38 <<<---'
+                    Rails.logger.debug('--->>> 38 <<<---')
 
                     if lot_phase_previous.nil?
-                        puts '--->>> 39 <<<---'
+                        Rails.logger.debug('--->>> 39 <<<---')
                         lot_new = Lot.create(cost: new_cost, weight: product_treatment_phase_new.weight, waste: 0.0, available: 0.0)
-                        puts '--->>> 40 <<<---'
+                        Rails.logger.debug('--->>> 40 <<<---')
                         product_treatment_phase_new.lot_id = lot_new.id
-                        puts '--->>> 41 <<<---'
+                        Rails.logger.debug('--->>> 41 <<<---')
                     else
-                        puts '--->>> 42 <<<---'
+                        Rails.logger.debug('--->>> 42 <<<---')
                         product_treatment_phase_new.lot_id = lot_phase_previous.id
-                        puts '--->>> 43 <<<---'
+                        Rails.logger.debug('--->>> 43 <<<---')
                         cost_previous_lot = (lot_phase_previous.cost * lot_phase_previous.weight) 
-                        puts '--->>> 44 <<<---'
+                        Rails.logger.debug('--->>> 44 <<<---')
                         cost_new_lot = ( product_treatment_phase_new.cost * product_treatment_phase_new.weight )  
-                        puts '--->>> 45 <<<---' 
+                        Rails.logger.debug('--->>> 45 <<<---')
                         lot_phase_previous.cost = ( cost_previous_lot + cost_new_lot ) / ( lot_phase_previous.weight + product_treatment_phase_new.weight )
-                        puts '--->>> 46 <<<---' 
+                        Rails.logger.debug('--->>> 46 <<<---')
                         lot_phase_previous.cost
-                        puts '--->>> 47 <<<---'
+                        Rails.logger.debug('--->>> 47 <<<---')
                         Lot.find_by(id: lot_phase_previous.id).update(weight: lot_phase_previous.weight + product_treatment_phase_new.weight,cost: lot_phase_previous.cost )
-                        puts '--->>> 48 <<<---'
+                        Rails.logger.debug('--->>> 48 <<<---')
                     end  
                 else  
-                    puts '--->>> 49 <<<---'
+                    Rails.logger.debug('--->>> 49 <<<---')
                     render json: { message: "El peso ingresado es mayor al del inventario" }
-                    puts '--->>> 50 <<<---'
+                    Rails.logger.debug('--->>> 50 <<<---')
                 end
             end
 
             #Guardar Fase 
-            puts '--->>> 51 <<<---'
+            Rails.logger.debug('--->>> 51 <<<---')
             if product_treatment_phase_new.save 
-                puts '--->>> 52 <<<---'
+                Rails.logger.debug('--->>> 52 <<<---')
                 ### pool
                 if product_treatment_phase_new.phase_id == 4 
-                    puts '--->>> 53 <<<---'     
+                    Rails.logger.debug('--->>> 53 <<<---')    
                     product_treatment_phase_new_pool = ProductTreatmentPhase.new(
                         cost: product_treatment_phase_new[:cost], 
                         weight: product_treatment_phase_new[:weight], 
@@ -153,71 +153,71 @@ class ProductTreatmentPhasesController < ApplicationController
                         product_id: product_treatment_phase_new[:product_id],
                         product_treatment_phase_id: nil    
                     )  
-                    puts '--->>> 54 <<<---'       
+                    Rails.logger.debug('--->>> 54 <<<---')      
                     
                     product_treatment_phase_new_pool.id = nil
-                    puts '--->>> 55 <<<---'   
+                    Rails.logger.debug('--->>> 55 <<<---')  
                     product = Product.where("product_id = ? or id = ? ",product_treatment_phase_new_pool.product_id,product_treatment_phase_new_pool.product_id).uniq
-                    puts '--->>> 56 <<<---'
+                    Rails.logger.debug('--->>> 56 <<<---')
                     products_product_id = product.map{ |product| product.product_id }
-                    puts '--->>> 57 <<<---'
+                    Rails.logger.debug('--->>> 57 <<<---')
                     products_id = product.map{ |product| product.id }
-                    puts '--->>> 58 <<<---'
+                    Rails.logger.debug('--->>> 58 <<<---')
                     products = ( products_product_id + products_id ) 
-                    puts '--->>> 59 <<<---'
+                    Rails.logger.debug('--->>> 59 <<<---')
                     lot_pool =  Lot.joins(:product_treatment_phases).where("product_id in ( ? ) and phase_id = 5 ",products)
-                    puts '--->>> 60 <<<---'
+                    Rails.logger.debug('--->>> 60 <<<---')
                     product_treatment_phase_new_pool.product_treatment_phase_id = product_treatment_phase_new_pool.id
-                    puts '--->>> 61 <<<---'
+                    Rails.logger.debug('--->>> 61 <<<---')
                     product_treatment_phase_new_pool.phase_id = 5
-                    puts '--->>> 62 <<<---'
+                    Rails.logger.debug('--->>> 62 <<<---')
                     if lot_pool.nil? || lot_pool.empty?
-                        puts '--->>> 63 <<<---'
+                        Rails.logger.debug('--->>> 63 <<<---')
                         lot_new = Lot.new(cost: product_treatment_phase_new_pool.cost, weight: product_treatment_phase_new_pool.weight)
-                        puts '--->>> 64 <<<---'
+                        Rails.logger.debug('--->>> 64 <<<---')
                         if lot_new.save 
-                            puts '--->>> 65 <<<---'
+                            Rails.logger.debug('--->>> 65 <<<---')
                             product_treatment_phase_new_pool.lot_id = lot_new.id
-                            puts '--->>> 66 <<<---'
+                            Rails.logger.debug('--->>> 66 <<<---')
                             product_treatment_phase_new_pool.save
-                            puts '--->>> 67 <<<---'  
+                            Rails.logger.debug('--->>> 67 <<<---') 
                         end
                     else
-                        puts '--->>> 68 <<<---'
+                        Rails.logger.debug('--->>> 68 <<<---')
                         lot_pool = lot_pool.last
-                        puts '--->>> 69 <<<---'
+                        Rails.logger.debug('--->>> 69 <<<---')
                         product_treatment_phase_new_pool.lot_id = lot_pool.id
-                        puts '--->>> 70 <<<---'
+                        Rails.logger.debug('--->>> 70 <<<---')
                         cost_previous_lot_pool = (lot_pool.cost * lot_pool.weight) 
-                        puts '--->>> 71 <<<---'
+                        Rails.logger.debug('--->>> 71 <<<---')
                         cost_new_lot_pool = ( product_treatment_phase_new_pool.cost * product_treatment_phase_new_pool.weight )   
-                        puts '--->>> 72 <<<---'
+                        Rails.logger.debug('--->>> 72 <<<---')
                         lot_pool.cost = ( cost_previous_lot_pool + cost_new_lot_pool ) / ( lot_pool.weight + product_treatment_phase_new_pool.weight )
-                        puts '--->>> 73 <<<---'
+                        Rails.logger.debug('--->>> 73 <<<---')
                         lot_pool.update(weight: lot_pool.weight + product_treatment_phase_new_pool.weight,cost: lot_pool.cost ) 
-                        puts '--->>> 74 <<<---' 
+                        Rails.logger.debug('--->>> 74 <<<---') 
                         product_treatment_phase_new_pool.save  
-                        puts '--->>> 75 <<<---'
+                        Rails.logger.debug('--->>> 75 <<<---')
                     end   
-                    puts '--->>> 76 <<<---'
+                    Rails.logger.debug('--->>> 76 <<<---')
                 end 
-                puts '--->>> 77 <<<---'
+                Rails.logger.debug('--->>> 77 <<<---')
                 render json: product_treatment_phase_new, status: :created, location: product_treatment_phase_new
-                puts '--->>> 78 <<<---'
+                Rails.logger.debug('--->>> 78 <<<---')
             else
-                puts '--->>> 79 <<<---'
+                Rails.logger.debug('--->>> 79 <<<---')
                 render json: product_treatment_phase_new.errors, status: :unprocessable_entity
-                puts '--->>> 80 <<<---'
+                Rails.logger.debug('--->>> 80 <<<---')
             end  
-            puts '--->>> 81 <<<---'
+            Rails.logger.debug('--->>> 81 <<<---')
         end # --->>> closed transaction 
-        puts '--->>> 82 <<<---'
+        Rails.logger.debug('--->>> 82 <<<---')
     else
-        puts '--->>> 83 <<<---'
+        Rails.logger.debug('--->>> 83 <<<---')
         render json: { message: "No hay esa cantidad disponible en el inventario" }
-        puts '--->>> 84 <<<---'
+        Rails.logger.debug('--->>> 84 <<<---')
     end #--->>>Closed invetary
-    puts '--->>> 85 <<<---'
+    Rails.logger.debug('--->>> 85 <<<---')
 end #--- >>> Closed method
 
 

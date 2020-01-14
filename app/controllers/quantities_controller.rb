@@ -57,11 +57,20 @@
 
   # PATCH/PUT /quantities/1
   def update
-    if quantity.update(quantity_params)
-      
-      render json: quantity
+    binding.pry
+    @quantity
+    quantity_cost = @quantity.cost
+    binding.pry
+    quantity_weight = @quantity.weight
+    binding.pry
+    if @quantity.update(quantity_params)
+      binding.pry
+      render json: @quantity
+      binding.pry
     else
-      render json: quantity.errors, status: :unprocessable_entity
+      binding.pry
+      render json: @quantity.errors, status: :unprocessable_entity
+      binding.pry
     end
   end
 
