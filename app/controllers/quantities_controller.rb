@@ -57,40 +57,36 @@
 
   # PATCH/PUT /quantities/1
   def update
-    binding.pry
+
     last_cost = @quantity.cost
-    binding.pry
     last_weight =  @quantity.weight
-    binding.pry
     cost_kilo = ( last_cost / last_weight )
-    binding.pry
-
-    binding.pry
-    lot = Lot.find_by(id: @quantity.lot_id)
-    binding.pry
-    cost_lot_total = (lot.weight * lot.cost)
-    binding.pry
-    cost_lot_total = (cost_lot_total - last_cost)
-    binding.pry 
-    lot.weight = ( lot.weight - last_weight )
-    binding.pry
-    cost_kilo_lot = ( cost_lot_total / lot.weight )
-    binding.pry
-    lot.cost = cost_kilo_lot 
-    binding.pry
-
-    old_cost_lot = ( lot.weight * lot.cost )
     
+    Quantity.transaction do 
 
-    if @quantity.update(quantity_params)
-      binding.pry
-      render json: @quantity
-      binding.pry
-    else
-      binding.pry
-      render json: @quantity.errors, status: :unprocessable_entity
-      binding.pry
-    end
+      lot = Lot.find_by(id: @quantity.lot_id)
+      product_treatment_phase = ProductTreatmentPhase.joins(:lot).where(lot_id: lot.id, cost: lot.cost, weight: lot.weight, product_id: @quantity.product_id).last
+  
+      cost_lot_total = (lot.weight * lot.cost)
+      cost_lot_total = (cost_lot_total - last_cost)
+      lot.weight = ( lot.weight - last_weight )
+      cost_kilo_lot = ( cost_lot_total / lot.weight )
+      lot.cost = cost_kilo_lot 
+      
+      old_cost_lot = ( lot.weight * lot.cost )
+      new_weight = ( lot.weight + quantity_params[:weight] )
+      new_cost = (  ( old_cost_lot + quantity_params[:cost]  ) / new_weight  )
+     
+      lot.update(cost: new_cost, weight: new_weight)
+      product_treatment_phase.update(cost: new_cost, weight: new_weight)
+
+      if @quantity.update(quantity_params)
+        render json: @quantity        
+      else
+        render json: @quantity.errors, status: :unprocessable_entity
+      end
+      
+    end # closed transaction 
   end
 
   # DELETE /quantities/1
@@ -107,7 +103,7 @@
 
     # Only allow a trusted parameter "white list" through.
     def quantity_params
-      params.require(:quantity).permit(:cost, :weight, :date, :product_id, :lot_id)
+      params.require(:quantity).permit(:cost, :weight, :weight_initial, :date, :product_id, :lot_id)
     end
 
 end

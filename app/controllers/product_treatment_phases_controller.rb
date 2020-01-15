@@ -206,11 +206,11 @@ class ProductTreatmentPhasesController < ApplicationController
                     Rails.logger.debug('--->>> 76 <<<---')
                 end 
                 Rails.logger.debug('--->>> 77 <<<---')
-                render json: product_treatment_phase_new, status: :created, location: product_treatment_phase_new
+                render json: product_treatment_phase_new ##, status: :created, location: product_treatment_phase_new
                 Rails.logger.debug('--->>> 78 <<<---')
             else
                 Rails.logger.debug('--->>> 79 <<<---')
-                render json: product_treatment_phase_new.errors, status: :unprocessable_entity
+                render json: product_treatment_phase_new.errors ##, status: :unprocessable_entity
                 Rails.logger.debug('--->>> 80 <<<---')
             end  
             Rails.logger.debug('--->>> 81 <<<---')
@@ -401,7 +401,6 @@ end #--- >>> Closed method
 
     # Only allow a trusted parameter "white list" through.
     def product_treatment_phase_params
-        Rails.logger.debug('ENTRO product_treatment_phase_params() ' )
       params.require(:product_treatment_phase).permit(
         :cost ,
         :phase_id_previous,
@@ -411,7 +410,6 @@ end #--- >>> Closed method
         :product_treatment_phase_id,
         product_treatments_attributes: [ :cost, :weight, :waste, :treatment_id, :treatment_new_name, :minimal_cost, :maximum_cost ]
       )
-      Rails.logger.debug('ENTRO DESPUES DEL PARAMS product_treatment_phase_params() ' )
     end
 
     def classification_product_treatment_phase_params
