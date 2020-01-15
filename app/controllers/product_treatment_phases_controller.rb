@@ -16,8 +16,12 @@ class ProductTreatmentPhasesController < ApplicationController
   # POST /product_treatment_phases
   def create
     
+    ### ojo borrar 
+
+    
     Rails.logger.debug('--->>> entando al create <<<---')
     @product_treatment_phase = product_treatment_phase_params 
+
     Rails.logger.debug('--->>> 1 <<<---')              
     phase_id_previous = params[:phase_id_previous]
     Rails.logger.debug('--->>> 2 <<<---') 
@@ -202,11 +206,11 @@ class ProductTreatmentPhasesController < ApplicationController
                     Rails.logger.debug('--->>> 76 <<<---')
                 end 
                 Rails.logger.debug('--->>> 77 <<<---')
-                render json: product_treatment_phase_new, status: :created, location: product_treatment_phase_new
+                render json: product_treatment_phase_new ##, status: :created, location: product_treatment_phase_new
                 Rails.logger.debug('--->>> 78 <<<---')
             else
                 Rails.logger.debug('--->>> 79 <<<---')
-                render json: product_treatment_phase_new.errors, status: :unprocessable_entity
+                render json: product_treatment_phase_new.errors ##, status: :unprocessable_entity
                 Rails.logger.debug('--->>> 80 <<<---')
             end  
             Rails.logger.debug('--->>> 81 <<<---')

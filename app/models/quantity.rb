@@ -3,7 +3,7 @@ class Quantity < ApplicationRecord
   belongs_to :product
   belongs_to :lot
 
-  before_update :created_quantity_intial 
+  ###before_update :created_quantity_intial 
   after_commit  :created_quantity_intial
   
   private 

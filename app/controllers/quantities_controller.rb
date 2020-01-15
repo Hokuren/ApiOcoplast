@@ -57,21 +57,36 @@
 
   # PATCH/PUT /quantities/1
   def update
-    binding.pry
-    @quantity
-    quantity_cost = @quantity.cost
-    binding.pry
-    quantity_weight = @quantity.weight
-    binding.pry
-    if @quantity.update(quantity_params)
-      binding.pry
-      render json: @quantity
-      binding.pry
-    else
-      binding.pry
-      render json: @quantity.errors, status: :unprocessable_entity
-      binding.pry
-    end
+
+    last_cost = @quantity.cost
+    last_weight =  @quantity.weight
+    cost_kilo = ( last_cost / last_weight )
+    
+    Quantity.transaction do 
+
+      lot = Lot.find_by(id: @quantity.lot_id)
+      product_treatment_phase = ProductTreatmentPhase.joins(:lot).where(lot_id: lot.id, cost: lot.cost, weight: lot.weight, product_id: @quantity.product_id).last
+  
+      cost_lot_total = (lot.weight * lot.cost)
+      cost_lot_total = (cost_lot_total - last_cost)
+      lot.weight = ( lot.weight - last_weight )
+      cost_kilo_lot = ( cost_lot_total / lot.weight )
+      lot.cost = cost_kilo_lot 
+      
+      old_cost_lot = ( lot.weight * lot.cost )
+      new_weight = ( lot.weight + quantity_params[:weight] )
+      new_cost = (  ( old_cost_lot + quantity_params[:cost]  ) / new_weight  )
+     
+      lot.update(cost: new_cost, weight: new_weight)
+      product_treatment_phase.update(cost: new_cost, weight: new_weight)
+
+      if @quantity.update(quantity_params)
+        render json: @quantity        
+      else
+        render json: @quantity.errors, status: :unprocessable_entity
+      end
+      
+    end # closed transaction 
   end
 
   # DELETE /quantities/1
@@ -88,7 +103,7 @@
 
     # Only allow a trusted parameter "white list" through.
     def quantity_params
-      params.require(:quantity).permit(:cost, :weight, :date, :product_id, :lot_id)
+      params.require(:quantity).permit(:cost, :weight, :weight_initial, :date, :product_id, :lot_id)
     end
 
 end
