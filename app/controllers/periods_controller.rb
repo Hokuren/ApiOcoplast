@@ -5,11 +5,15 @@ class PeriodsController < ApplicationController
   # GET /periods.json
   def index
     @periods = Period.all
+
+    render json: @periods
+
   end
 
   # GET /periods/1
   # GET /periods/1.json
   def show
+    render json: @period
   end
 
   # POST /periods
@@ -39,6 +43,25 @@ class PeriodsController < ApplicationController
   def destroy
     @period.destroy
   end
+
+  
+  def costs
+    binding.pry
+    period_id = params[:id]
+    binding.pry
+    costs_period = Period.find_by(id: period_id).costs
+    binding.pry
+    if costs_period.nil? || costs_period.empty? 
+      binding.pry
+      render json: costs_period.errors
+      binding.pry      
+    else 
+      binding.pry
+      render json: costs_period
+      binding.pry
+    end
+    
+  end 
 
   private
     # Use callbacks to share common setup or constraints between actions.
