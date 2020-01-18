@@ -57,10 +57,39 @@ Treatment.create(name: 'Costo asignado op1 (Sueldo * %PL)', minimal_cost: 0, max
 Treatment.create(name: 'Costo asignado op2 (Sueldo * %PL)', minimal_cost: 0, maximum_cost: 3000)
 Treatment.create(name: 'Costo asignado energía molino (costo asignado total consumo energía molino * %PL)', minimal_cost: 0, maximum_cost: 3000)
 
+Period.create(period: "01/2019", month: 1, year: 2019, start_period: "2019-01-01 05:00:00", end_period: "2019-01-31 05:00:00")
+
+Phase.create(name: 'Inventario en Bruto') ### 1
+Phase.create(name: 'Clasificacion')       ### 2
+Phase.create(name: 'Aglutinar')           ### 3
+Phase.create(name: 'Lavar')               ### 4 
+Phase.create(name: 'Moler')               ### 5
+Phase.create(name: 'Pool')                ### 6  ### OJO                
 
 
-Phase.create(name: 'Inventario en Bruto')
-Phase.create(name: 'Fase 1')
-Phase.create(name: 'Fase 2')
-Phase.create(name: 'Fase 3') 
-Phase.create(name: 'Pool')           
+Cost.create(name: 'TOTAL TRANSPORTE MES (incluyendo sueldo)',cost: 4000000)                   ### 1
+Cost.create(name: 'TOTAL PAGADO ENERGÍA - BODEGA LOS LAGOS',cost: 14000000)                   ### 2
+Cost.create(name: 'TOTAL PAGADO ENERGÍA - BODEGA ZONA FRANCA',cost: 900000)                   ### 3
+Cost.create(name: 'TOTAL PAGADO AGUA',cost: 12000)                                            ### 4 
+Cost.create(name: 'ANA MARÍA',cost: 1600000)                                                  ### 5
+Cost.create(name: 'COTEROS',cost: 1500000)                                                    ### 6
+Cost.create(name: 'MANO DE OBRA CLASIFICACIÓN Y ALISTAMIENTO (SELECCIÓN Y PICADO)',cost: 200) ### 7 ### OJO
+Cost.create(name: 'Mano de obra op3 (limpieza, alistamiento y aglutinado)',cost: 1300000)     ### 8
+Cost.create(name: 'Dotación y EPP op3',cost: 41667)                                           ### 9
+Cost.create(name: 'Mano de obra op2 (30% único operador))',cost: 1300000)                     ### 10
+
+
+PeriodCostPhase.create(type_cost: 'porcentage',porcentage: 15, period_id: 1, cost_id: 1, phase_id: 1)
+PeriodCostPhase.create(type_cost: 'porcentage',porcentage: 18, period_id: 1, cost_id: 5, phase_id: 1)
+PeriodCostPhase.create(type_cost: 'porcentage',porcentage: 12, period_id: 1, cost_id: 6, phase_id: 1)
+PeriodCostPhase.create(type_cost: 'multiply',period_id: 1, cost_id: 7 , phase_id: 1)
+
+PeriodCostPhase.create(type_cost: 'porcentage',porcentage: 3, period_id: 1, cost_id: 1, phase_id: 3)
+PeriodCostPhase.create(type_cost: 'porcentage',porcentage: 5, period_id: 1, cost_id: 8, phase_id: 3)
+PeriodCostPhase.create(type_cost: 'porcentage',porcentage: '0.2', period_id: 1, cost_id: 9, phase_id: 3)
+PeriodCostPhase.create(type_cost: 'porcentage',porcentage: '0.2', period_id: 1, cost_id: 3, phase_id: 3)
+
+PeriodCostPhase.create(type_cost: 'porcentage',porcentage: 30, period_id: 1, cost_id: 10, phase_id: 4)
+PeriodCostPhase.create(type_cost: 'porcentage',porcentage: 30, period_id: 1, cost_id: 10, phase_id: 4)
+
+

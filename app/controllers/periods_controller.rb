@@ -19,7 +19,11 @@ class PeriodsController < ApplicationController
   # POST /periods
   # POST /periods.json
   def create
+    binding.pry
+    period_params
+    binding.pry
     @period = Period.new(period_params)
+    binding.pry
 
     if @period.save
       render :show, status: :created, location: @period
@@ -45,20 +49,13 @@ class PeriodsController < ApplicationController
   end
 
   
-  def costs
-    binding.pry
+  def costs_period
     period_id = params[:id]
-    binding.pry
     costs_period = Period.find_by(id: period_id).costs
-    binding.pry
     if costs_period.nil? || costs_period.empty? 
-      binding.pry
-      render json: costs_period.errors
-      binding.pry      
+      render json: costs_period.errors    
     else 
-      binding.pry
       render json: costs_period
-      binding.pry
     end
     
   end 

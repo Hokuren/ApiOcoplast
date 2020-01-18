@@ -41,6 +41,18 @@ class PeriodCostPhasesController < ApplicationController
     @period_cost_phase.destroy
   end
 
+  def costs_phase
+
+    period_cost_phase = PeriodCostPhase.where(period_id: params[:period_id], phase_id: params[:phase_id])
+
+    if period_cost_phase.nil? || period_cost_phase.empty?
+      render json: period_cost_phase
+    else
+      render json: period_cost_phase, each_serializer: CostsPhaseSerializer 
+    end  
+
+  end
+
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_period_cost_phase
