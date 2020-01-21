@@ -10,19 +10,16 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_01_16_160920) do
-
-  # These are extensions that must be enabled in order to support this database
-  enable_extension "plpgsql"
+ActiveRecord::Schema.define(version: 2020_01_20_210405) do
 
   create_table "audit_quantities", force: :cascade do |t|
     t.integer "cost"
     t.integer "weight"
     t.integer "weight_initial"
     t.datetime "date"
-    t.bigint "product_id", null: false
-    t.bigint "lot_id", null: false
-    t.bigint "quantity_id", null: false
+    t.integer "product_id", null: false
+    t.integer "lot_id", null: false
+    t.integer "quantity_id", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["lot_id"], name: "index_audit_quantities_on_lot_id"
@@ -51,9 +48,9 @@ ActiveRecord::Schema.define(version: 2020_01_16_160920) do
     t.integer "cost"
     t.integer "cost_porcentage"
     t.integer "porcentage"
-    t.bigint "period_id", null: false
-    t.bigint "cost_id", null: false
-    t.bigint "phase_id", null: false
+    t.integer "period_id", null: false
+    t.integer "cost_id", null: false
+    t.integer "phase_id", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["cost_id"], name: "index_period_cost_phases_on_cost_id"
@@ -80,12 +77,13 @@ ActiveRecord::Schema.define(version: 2020_01_16_160920) do
   create_table "product_treatment_phases", force: :cascade do |t|
     t.decimal "cost"
     t.decimal "weight"
-    t.bigint "phase_id", null: false
-    t.bigint "product_treatment_phase_id"
-    t.bigint "lot_id"
-    t.bigint "product_id"
+    t.integer "phase_id", null: false
+    t.integer "product_treatment_phase_id"
+    t.integer "lot_id"
+    t.integer "product_id"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.integer "waste"
     t.index ["lot_id"], name: "index_product_treatment_phases_on_lot_id"
     t.index ["phase_id"], name: "index_product_treatment_phases_on_phase_id"
     t.index ["product_id"], name: "index_product_treatment_phases_on_product_id"
@@ -98,9 +96,9 @@ ActiveRecord::Schema.define(version: 2020_01_16_160920) do
     t.decimal "waste"
     t.decimal "minimal_cost"
     t.decimal "maximum_cost"
-    t.bigint "treatment_id", null: false
-    t.bigint "product_treatment_phase_id", null: false
-    t.bigint "product_treatment_id"
+    t.integer "treatment_id", null: false
+    t.integer "product_treatment_phase_id", null: false
+    t.integer "product_treatment_id"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["product_treatment_id"], name: "index_product_treatments_on_product_treatment_id"
@@ -112,7 +110,7 @@ ActiveRecord::Schema.define(version: 2020_01_16_160920) do
     t.string "name"
     t.decimal "cost"
     t.decimal "weight"
-    t.bigint "product_id"
+    t.integer "product_id"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["product_id"], name: "index_products_on_product_id"
@@ -123,8 +121,8 @@ ActiveRecord::Schema.define(version: 2020_01_16_160920) do
     t.decimal "weight"
     t.decimal "weight_initial"
     t.datetime "date"
-    t.bigint "product_id", null: false
-    t.bigint "lot_id", null: false
+    t.integer "product_id", null: false
+    t.integer "lot_id", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["lot_id"], name: "index_quantities_on_lot_id"

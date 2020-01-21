@@ -10,6 +10,11 @@ class CostsController < ApplicationController
   # GET /costs/1
   # GET /costs/1.json
   def show
+    if @cost.nil? 
+      render json: @cost.errors, status: :unprocessable_entity
+    else
+      render json: @cost
+    end
   end
 
   # POST /costs
