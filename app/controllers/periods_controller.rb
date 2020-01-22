@@ -19,11 +19,7 @@ class PeriodsController < ApplicationController
   # POST /periods
   # POST /periods.json
   def create
-    binding.pry
-    period_params
-    binding.pry
     @period = Period.new(period_params)
-    binding.pry
 
     if @period.save
       render :show, status: :created, location: @period

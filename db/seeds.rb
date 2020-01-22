@@ -77,6 +77,12 @@ Cost.create(name: 'MANO DE OBRA CLASIFICACIÓN Y ALISTAMIENTO (SELECCIÓN Y PICA
 Cost.create(name: 'Mano de obra op3 (limpieza, alistamiento y aglutinado)',cost: 1300000)     ### 8
 Cost.create(name: 'Dotación y EPP op3',cost: 41667)                                           ### 9
 Cost.create(name: 'Mano de obra op2 (30% único operador))',cost: 1300000)                     ### 10
+Cost.create(name: 'Dotación y EPP op2',cost: 50000)                                           ### 11
+Cost.create(name: 'Insumos de lavado',cost: 41666.6666666667)                                 ### 12
+Cost.create(name: 'Repuestos y mtto',cost: 70000)                                             ### 13
+Cost.create(name: 'Costo asignado op1',cost: 1300000)                                         ### 14
+Cost.create(name: 'Repuestos y mtto',cost: 1300000)                                           ### 15
+
 
 
 PeriodCostPhase.create(type_cost: 'porcentage',porcentage: 15, period_id: 1, cost_id: 1, phase_id: 1)
@@ -86,10 +92,21 @@ PeriodCostPhase.create(type_cost: 'multiply',period_id: 1, cost_id: 7 , phase_id
 
 PeriodCostPhase.create(type_cost: 'porcentage',porcentage: 3, period_id: 1, cost_id: 1, phase_id: 3)
 PeriodCostPhase.create(type_cost: 'porcentage',porcentage: 5, period_id: 1, cost_id: 8, phase_id: 3)
-PeriodCostPhase.create(type_cost: 'porcentage',porcentage: '0.2', period_id: 1, cost_id: 9, phase_id: 3)
-PeriodCostPhase.create(type_cost: 'porcentage',porcentage: '0.2', period_id: 1, cost_id: 3, phase_id: 3)
+PeriodCostPhase.create(type_cost: 'porcentage',porcentage: 5, period_id: 1, cost_id: 9, phase_id: 3)
+PeriodCostPhase.create(type_cost: 'porcentage',porcentage: "0.2", period_id: 1, cost_id: 3, phase_id: 3)
 
 PeriodCostPhase.create(type_cost: 'porcentage',porcentage: 30, period_id: 1, cost_id: 10, phase_id: 4)
-PeriodCostPhase.create(type_cost: 'porcentage',porcentage: 30, period_id: 1, cost_id: 10, phase_id: 4)
+PeriodCostPhase.create(type_cost: 'porcentage',porcentage: "1.04", period_id: 1, cost_id: 2, phase_id: 4)
+PeriodCostPhase.create(type_cost: 'porcentage',porcentage: "0.39", period_id: 1, cost_id: 2, phase_id: 4)
+PeriodCostPhase.create(type_cost: 'porcentage',porcentage: "11.7", period_id: 1, cost_id: 4, phase_id: 4)
+PeriodCostPhase.create(type_cost: 'porcentage',porcentage: 100, period_id: 1, cost_id: 11, phase_id: 4)
+PeriodCostPhase.create(type_cost: 'porcentage',porcentage: 30, period_id: 1, cost_id: 12, phase_id: 4)
+PeriodCostPhase.create(type_cost: 'porcentage',porcentage: 100, period_id: 1, cost_id: 13, phase_id: 4)
+
+PeriodCostPhase.create(type_cost: 'porcentage',porcentage: 8, period_id: 1, cost_id: 2, phase_id: 5)
+PeriodCostPhase.create(type_cost: 'porcentage',porcentage: 100, period_id: 1, cost_id: 14, phase_id: 5)
+PeriodCostPhase.create(type_cost: 'porcentage',porcentage: 100, period_id: 1, cost_id: 15, phase_id: 5)
+
+
 
 

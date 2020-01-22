@@ -27,12 +27,8 @@ class ProductTreatmentPhasesController < ApplicationController
 
     inventary = Lot.by_product_treatment_phase(@product_treatment_phase[:product_treatment_phase_id])
 
-
-
-
     if @product_treatment_phase[:waste] <= @product_treatment_phase[:weight]
-    
-        if (@product_treatment_phase[:weight] - @product_treatment_phase[:waste])<= inventary.weight
+        if (@product_treatment_phase[:weight] <= inventary.weight)
             treatments = Treatment.all
             cost_treatments = 0
             ProductTreatmentPhase.transaction do 
@@ -55,13 +51,13 @@ class ProductTreatmentPhasesController < ApplicationController
                     product_treatment_phase_id: @product_treatment_phase[:product_treatment_phase_id] || nil,
                     waste: @product_treatment_phase[:waste],
                     product_treatments_attributes: @product_treatment_phase[:product_treatments_attributes].map{ |phase| { "cost" => phase[:cost], "treatment_id" => phase[:treatment_id] } }
-                )      
-
+                ) 
+                
                 product_treatment_phase_new.cost = 0 
-
+                   
                 #validamos que tenga una face anterior 
                 if !product_treatment_phase_new.product_treatment_phase_id.nil?  
-        
+                    
                     lot = ProductTreatmentPhase.find(product_treatment_phase_new.product_treatment_phase_id).lot 
 
                     cost_phase_previous = lot.cost
@@ -77,8 +73,10 @@ class ProductTreatmentPhasesController < ApplicationController
                         new_weight = weight_phase_previous
                         product_treatment_phase_new.cost = new_cost
                         lot.update(weight: weight_phase_previous)
+                        
                         begin 
-                            lot_phase_previous = ProductTreatmentPhase.find_by(id: product_treatment_phase_new.product_treatment_phase_id).product_treatment_phases.where("phase_id = ? and lot_id is not null",product_treatment_phase_new.phase_id).last.lot || nil
+                            #lot_phase_previous = ProductTreatmentPhase.find_by(id: product_treatment_phase_new.product_treatment_phase_id).product_treatment_phases.where("phase_id = ? and lot_id is not null",product_treatment_phase_new.phase_id).last.lot || nil
+                            lot_phase_previous = ProductTreatmentPhase.find_by(id: product_treatment_phase_new.product_treatment_phase_id).product_treatment_phases.where("phase_id = ? and product_id = ? and lot_id is not null",product_treatment_phase_new.phase_id,product_treatment_phase_new.product_id).last.lot ||= nil
                         rescue
                             lot_phase_previous = nil 
                         end 
@@ -92,7 +90,7 @@ class ProductTreatmentPhasesController < ApplicationController
                             cost_new_lot = ( product_treatment_phase_new.cost * product_treatment_phase_new.weight )  
                             lot_phase_previous.cost = ( cost_previous_lot + cost_new_lot ) / ( lot_phase_previous.weight + product_treatment_phase_new.weight )
                             lot_phase_previous.cost
-                            Lot.find_by(id: lot_phase_previous.id).update(weight: lot_phase_previous.weight + (product_treatment_phase_new.weight - product_treatment_phase_new.waste),cost: lot_phase_previous.cost )
+                            Lot.find_by(id: lot_phase_previous.id).update(weight: lot_phase_previous.weight + (product_treatment_phase_new.weight - product_treatment_phase_new.waste),cost: lot_phase_previous.cost )                        
                         end  
                     else 
                         render json: { message: "El peso ingresado es mayor al del inventario" }
@@ -109,7 +107,7 @@ class ProductTreatmentPhasesController < ApplicationController
                             phase_id: product_treatment_phase_new[:phase_id],
                             product_id: product_treatment_phase_new[:product_id],
                             product_treatment_phase_id: nil    
-                        )      
+                        )  
                         product_treatment_phase_new_pool.id = nil
                         product = Product.where("product_id = ? or id = ? ",product_treatment_phase_new_pool.product_id,product_treatment_phase_new_pool.product_id).uniq
                         products_product_id = product.map{ |product| product.product_id }
@@ -179,7 +177,7 @@ def classification
 
                 cost_treatments = classification[:treatments].pluck(:cost_treatment).reduce(:+)
                 cost_treatments = 0 if cost_treatments.nil? 
-                cost_kilo_old = ( classification[:cost] + cost_treatments ) / ( classification[:weight] )
+                cost_kilo_old = ( classification[:cost] ) / ( classification[:weight] )
                 cost_kilo = ( classification[:cost] + cost_treatments ) / ( classification[:weight] - classification[:waste] )      
                 product_treatment_phase = ProductTreatmentPhase.new(
                 cost: cost_kilo,
@@ -190,6 +188,7 @@ def classification
                 lot_id: nil, 
                 product_id: classification[:product_id]                      
                 )
+
                 if lot_previous.nil?
                     lot_previous = Lot.create(cost: cost_kilo, weight: ( classification[:weight] - ( weight_products + classification[:waste] ) )  )
                 else 
@@ -234,7 +233,7 @@ def classification
 
                             ### pool
                             if product_treatment_phase_new.save
-                                if product_treatment_phase_new.phase_id == 4 
+                                if product_treatment_phase_new.phase_id == 5
                         
                                     product_treatment_phase_new_pool = ProductTreatmentPhase.new(
                                         cost: product_treatment_phase_new[:cost], 
@@ -251,7 +250,7 @@ def classification
                                     products = ( products_product_id + products_id ) 
                                     lot_pool =  Lot.joins(:product_treatment_phases).where("product_id in ( ? ) and phase_id = 5 ",products)
                                     product_treatment_phase_new_pool.product_treatment_phase_id = product_treatment_phase_new_pool.id
-                                    product_treatment_phase_new_pool.phase_id = 5
+                                    product_treatment_phase_new_pool.phase_id = 6
                                     if lot_pool.nil? || lot_pool.empty?
                                         lot_new = Lot.new(cost: product_treatment_phase_new_pool.cost, weight: product_treatment_phase_new_pool.weight)
                                         if lot_new.save 

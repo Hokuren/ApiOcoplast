@@ -5,6 +5,11 @@ class PeriodCostPhasesController < ApplicationController
   # GET /period_cost_phases.json
   def index
     @period_cost_phases = PeriodCostPhase.all
+    if @period_cost_phases.nil? 
+      render json: @period_cost_phase.errors
+    else
+      render json: @period_cost_phases
+    end
   end
 
   # GET /period_cost_phases/1

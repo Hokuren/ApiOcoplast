@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_01_20_210405) do
+ActiveRecord::Schema.define(version: 2020_01_21_203149) do
 
   create_table "audit_quantities", force: :cascade do |t|
     t.integer "cost"
@@ -47,7 +47,7 @@ ActiveRecord::Schema.define(version: 2020_01_20_210405) do
     t.string "type_cost"
     t.integer "cost"
     t.integer "cost_porcentage"
-    t.integer "porcentage"
+    t.decimal "porcentage"
     t.integer "period_id", null: false
     t.integer "cost_id", null: false
     t.integer "phase_id", null: false
