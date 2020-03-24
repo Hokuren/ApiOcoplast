@@ -1,4 +1,7 @@
 Rails.application.routes.draw do
+  resources :period_cost_phases
+  resources :costs
+  resources :periods
   resources :quantities
   resources :lots
   resources :product_treatments
@@ -13,5 +16,10 @@ Rails.application.routes.draw do
   post '/phase_quantities/', to: 'products#quantity_phase'
   get '/pull_quantities/', to: 'products#quantity_pull'
   post 'product_treatment_phases/classification', to: 'product_treatment_phases#classification'
+  
+  get '/costs_period/:id', to: 'periods#costs_period' 
+  post '/costs_phase/', to: 'period_cost_phases#costs_phase'
+
   # For details on the DSL available within this file, see https://guides.rubyonrails.org/routing.html
+  
 end

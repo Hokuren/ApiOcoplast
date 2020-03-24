@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_01_13_160459) do
+ActiveRecord::Schema.define(version: 2020_01_21_203149) do
 
   create_table "audit_quantities", force: :cascade do |t|
     t.integer "cost"
@@ -27,11 +27,43 @@ ActiveRecord::Schema.define(version: 2020_01_13_160459) do
     t.index ["quantity_id"], name: "index_audit_quantities_on_quantity_id"
   end
 
+  create_table "costs", force: :cascade do |t|
+    t.string "name"
+    t.integer "cost"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+  end
+
   create_table "lots", force: :cascade do |t|
     t.decimal "cost"
     t.decimal "weight"
     t.decimal "waste"
     t.decimal "available"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+  end
+
+  create_table "period_cost_phases", force: :cascade do |t|
+    t.string "type_cost"
+    t.integer "cost"
+    t.integer "cost_porcentage"
+    t.decimal "porcentage"
+    t.integer "period_id", null: false
+    t.integer "cost_id", null: false
+    t.integer "phase_id", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["cost_id"], name: "index_period_cost_phases_on_cost_id"
+    t.index ["period_id"], name: "index_period_cost_phases_on_period_id"
+    t.index ["phase_id"], name: "index_period_cost_phases_on_phase_id"
+  end
+
+  create_table "periods", force: :cascade do |t|
+    t.string "period"
+    t.integer "month"
+    t.integer "year"
+    t.datetime "start_period"
+    t.datetime "end_period"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
   end
@@ -51,6 +83,7 @@ ActiveRecord::Schema.define(version: 2020_01_13_160459) do
     t.integer "product_id"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.integer "waste"
     t.index ["lot_id"], name: "index_product_treatment_phases_on_lot_id"
     t.index ["phase_id"], name: "index_product_treatment_phases_on_phase_id"
     t.index ["product_id"], name: "index_product_treatment_phases_on_product_id"
@@ -107,6 +140,9 @@ ActiveRecord::Schema.define(version: 2020_01_13_160459) do
   add_foreign_key "audit_quantities", "lots"
   add_foreign_key "audit_quantities", "products"
   add_foreign_key "audit_quantities", "quantities"
+  add_foreign_key "period_cost_phases", "costs"
+  add_foreign_key "period_cost_phases", "periods"
+  add_foreign_key "period_cost_phases", "phases"
   add_foreign_key "product_treatment_phases", "lots"
   add_foreign_key "product_treatment_phases", "phases"
   add_foreign_key "product_treatment_phases", "product_treatment_phases"
